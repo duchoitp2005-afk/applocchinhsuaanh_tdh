@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0a0b0e">
-    <title>Sopcare - AI Slider Cam Studio Production OS</title>
+    <title>Sopcare - AI Color Science Cam Studio</title>
     <style>
         * {
             box-sizing: border-box;
@@ -418,7 +418,7 @@
 
     <header>
         <h1>Sopcare</h1>
-        <p>AI Slider Cam Studio • Master Production OS</p>
+        <p>AI Color Science Cam Studio • Master Production OS</p>
     </header>
 
     <div class="studio-container">
@@ -482,7 +482,7 @@
             </div>
             <div class="control-group">
                 <div class="control-label"><span>Bão hòa Lá cây (HSL Green)</span><span id="val-greenSat">1.00</span></div>
-                <input type="range" id="slider-greenSat" class="slider" min="0.0" max="2.0" step="0.05" value="1">
+                <input type="range" id="slider-greenSat" class="slider" min="0.0" max="2.5" step="0.05" value="1">
             </div>
         </div>
 
@@ -511,9 +511,9 @@
             <div class="style-guide-card">
                 <div class="style-guide-title">💡 Gợi ý Công thức Màu Thực Vật & Điện Ảnh:</div>
                 <div class="style-guide-text">
-                    • <b>Phim Mỹ (Teal/Orange):</b> Khuyên dùng Temp +0.12, Tint -0.04, Saturation 1.10.<br>
-                    • <b>Màu Cây Cối/Phong Cảnh:</b> Hãy đẩy HSL Green lên 1.35, dìm Highlights xuống -0.10 để cứu chi tiết lá cây bị lóa sáng.<br>
-                    • <b>Điện Ảnh Hồng Kông:</b> Đẩy Kháng tương phản nhẹ, Temp +0.08, Tint +0.05 (Hơi ngả tím nhẹ lãng mạn).
+                    • <b>Phim Mỹ (Teal/Orange):</b> Chọn Look có sẵn hoặc kéo Temp +0.12, Tint -0.04, Saturation 1.15.<br>
+                    • <b>Màu Cây Cối/Lá Tươi:</b> Kéo thanh HSL Green lên 1.60, dìm Highlights xuống -0.15 để lấy lại gân lá sắc nét.<br>
+                    • <b>Điện Ảnh Hồng Kông:</b> Temp +0.10, Tint +0.06, Contrast 1.10 để màu ngả sắc tím ấm cổ kính.
                 </div>
             </div>
         </div>
@@ -566,7 +566,7 @@
                 reader.onload = (event) => {
                     originalImage = new Image();
                     originalImage.onload = () => {
-                        const targetWidth = originalImage.width > 800 ? 800 : originalImage.width;
+                        const targetWidth = originalImage.width > 700 ? 700 : originalImage.width;
                         const targetHeight = (targetWidth * originalImage.height) / originalImage.width;
                         canvas.width = targetWidth; canvas.height = targetHeight;
                         origCanvas.width = targetWidth; origCanvas.height = targetHeight;
@@ -584,12 +584,10 @@
             canvas.width = w; canvas.height = h;
             origCanvas.width = w; origCanvas.height = h;
             let grad = ctx.createLinearGradient(0, 0, w, h);
-            grad.addColorStop(0, '#e74c3c'); grad.addColorStop(0.3, '#2ecc71');
-            grad.addColorStop(0.7, '#f1c40f'); grad.addColorStop(1, '#3498db');
+            grad.addColorStop(0, '#2ecc71'); grad.addColorStop(0.5, '#27ae60'); grad.addColorStop(1, '#f1c40f');
             ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
-            ctx.fillStyle = "rgba(255,255,255,0.85)";
-            ctx.beginPath(); ctx.arc(130, 130, 60, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "rgba(15,15,25,0.8)"; ctx.fillRect(260, 70, 140, 130);
+            ctx.fillStyle = "rgba(255,255,255,0.9)";
+            ctx.beginPath(); ctx.arc(150, 130, 50, 0, Math.PI*2); ctx.fill();
             originalImage.src = canvas.toDataURL();
         }
 
@@ -629,9 +627,9 @@
 
             const settings = {
                 default:   { brightness: 1.0, contrast: 1.0, saturation: 1.0, highlights: 0.0, shadows: 0.0, temp: 0.0, tint: 0.0, greenSat: 1.0 },
-                cinematic: { brightness: 0.96, contrast: 1.16, saturation: 1.10, highlights: -0.06, shadows: 0.04, temp: 0.12, tint: -0.04, greenSat: 0.8 },
-                vintage:   { brightness: 1.02, contrast: 0.86, saturation: 0.75, highlights: -0.10, shadows: 0.12, temp: 0.15, tint: 0.06, greenSat: 1.2 },
-                bw:        { brightness: 1.0, contrast: 1.25, saturation: 0.0, highlights: 0.0, shadows: -0.06, temp: 0.0, tint: 0.0, greenSat: 0.0 }
+                cinematic: { brightness: 0.96, contrast: 1.14, saturation: 1.15, highlights: -0.08, shadows: 0.02, temp: 0.12, tint: -0.04, greenSat: 0.75 },
+                vintage:   { brightness: 1.00, contrast: 0.88, saturation: 0.80, highlights: -0.12, shadows: 0.10, temp: 0.14, tint: 0.05, greenSat: 1.30 },
+                bw:        { brightness: 1.0, contrast: 1.20, saturation: 0.0, highlights: 0.0, shadows: -0.04, temp: 0.0, tint: 0.0, greenSat: 0.0 }
             };
 
             const set = settings[type] || settings.default;
@@ -642,21 +640,69 @@
             applyFilters();
         }
 
+        // THUẬT TOÁN ĐỈNH CAO: XỬ LÝ MÀU TỪNG PIXEL THEO CHUẨN COLOR SCIENCE
         function applyFilters() {
             if (!originalImage.src) return;
             origCtx.clearRect(0, 0, origCanvas.width, origCanvas.height);
             origCtx.drawImage(originalImage, 0, 0, origCanvas.width, origCanvas.height);
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const b = document.getElementById('slider-brightness').value * 100;
-            const c = document.getElementById('slider-contrast').value * 100;
-            const s = document.getElementById('slider-saturation').value * 100;
-            const t = document.getElementById('slider-temp').value;
+            const imgData = origCtx.getImageData(0, 0, origCanvas.width, origCanvas.height);
+            const data = imgData.data;
+
+            const bSet = parseFloat(document.getElementById('slider-brightness').value);
+            const cSet = parseFloat(document.getElementById('slider-contrast').value);
+            const sSet = parseFloat(document.getElementById('slider-saturation').value);
+            const hSet = parseFloat(document.getElementById('slider-highlights').value);
+            const shSet = parseFloat(document.getElementById('slider-shadows').value);
+            const tSet = parseFloat(document.getElementById('slider-temp').value);
+            const tintSet = parseFloat(document.getElementById('slider-tint').value);
+            const gSatSet = parseFloat(document.getElementById('slider-greenSat').value);
             const colorSpace = document.getElementById('select-colorspace').value;
 
-            let logPrep = colorSpace === 'bmdlog' ? 'contrast(65%) brightness(120%) saturate(80%) ' : '';
-            ctx.filter = `${logPrep}brightness(${b}%) contrast(${c}%) saturate(${s}%) hue-rotate(${t * 40}deg) sepia(${t > 0 ? t * 20 : 0}%)`;
-            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < data.length; i += 4) {
+                let r = data[i] / 255, g = data[i+1] / 255, b = data[i+2] / 255;
+
+                // 1. Phục hồi LOG profile (Nếu chọn hệ màu LOG)
+                if (colorSpace === 'bmdlog') {
+                    r = Math.pow(r, 1.6) * 1.1; g = Math.pow(g, 1.6) * 1.1; b = Math.pow(b, 1.6) * 1.1;
+                }
+
+                // 2. Brightness & Contrast nâng cao
+                r *= bSet; g *= bSet; b *= bSet;
+                r = (r - 0.5) * cSet + 0.5; g = (g - 0.5) * cSet + 0.5; b = (b - 0.5) * cSet + 0.5;
+
+                // 3. Tách biệt Highlights và Shadows độc lập
+                let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                let hiFactor = Math.max(0, luma - 0.55) * 2.2;
+                let shFactor = Math.max(0, 0.45 - luma) * 2.2;
+                r += (hSet * hiFactor) + (shSet * shFactor);
+                g += (hSet * hiFactor) + (shSet * shFactor);
+                b += (hSet * hiFactor) + (shSet * shFactor);
+
+                // 4. Giả lập màu phim điện ảnh (Temp & Tint nghệ thuật)
+                r += tSet * 0.15; b -= tSet * 0.15;
+                g -= tintSet * 0.12; r += tintSet * 0.06; b += tintSet * 0.06;
+
+                // 5. Tách biệt bộ lọc màu thông minh cho Lá cây (HSL Green Isolation)
+                if (g > r * 1.05 && g > b * 1.05) {
+                    let greenDominance = g - Math.max(r, b);
+                    g = g * gSatSet + (1 - gSatSet) * luma * greenDominance;
+                    r *= (1 + (gSatSet - 1) * 0.1); 
+                }
+
+                // 6. Xử lý độ bão hòa màu Master (Saturation)
+                let finalLuma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                r = finalLuma + (r - finalLuma) * sSet;
+                g = finalLuma + (g - finalLuma) * sSet;
+                b = finalLuma + (b - finalLuma) * sSet;
+
+                // Trả kết quả pixel (Giới hạn từ 0 đến 255)
+                data[i] = Math.max(0, Math.min(255, r * 255));
+                data[i+1] = Math.max(0, Math.min(255, g * 255));
+                data[i+2] = Math.max(0, Math.min(255, b * 255));
+            }
+
+            ctx.putImageData(imgData, 0, 0);
             drawHistogram();
         }
 
@@ -688,9 +734,7 @@
             const link = document.createElement('a');
             link.download = 'Sopcare_Graded_Master.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.95);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function saveCustomPreset() {
@@ -701,8 +745,7 @@
             const savedPresets = getSavedPresets();
             savedPresets[name] = currentSettings;
             localStorage.setItem('sopcare_custom_presets', JSON.stringify(savedPresets));
-            nameInput.value = '';
-            renderCustomPresets();
+            nameInput.value = ''; renderCustomPresets();
         }
 
         function getSavedPresets() {
@@ -712,15 +755,13 @@
 
         function renderCustomPresets() {
             const container = document.getElementById('custom-presets-container');
-            container.innerHTML = '';
-            const savedPresets = getSavedPresets();
+            container.innerHTML = ''; const savedPresets = getSavedPresets();
             Object.keys(savedPresets).forEach(name => {
                 const btn = document.createElement('button');
                 btn.className = 'btn-preset'; btn.innerText = name;
                 btn.onclick = function() {
                     document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    const set = savedPresets[name];
+                    btn.classList.add('active'); const set = savedPresets[name];
                     sliderIds.forEach(id => {
                         document.getElementById(`slider-${id}`).value = set[id];
                         document.getElementById(`val-${id}`).innerText = set[id].toFixed(2);
@@ -752,19 +793,19 @@
                     for (let r = 0; r < size; r++) {
                         let rNew = r / (size - 1), gNew = g / (size - 1), bNew = b / (size - 1);
                         if (colorSpace === 'bmdlog') {
-                            rNew = Math.pow(rNew, 1.8) * 1.1; gNew = Math.pow(gNew, 1.8) * 1.1; bNew = Math.pow(bNew, 1.8) * 1.1;
+                            rNew = Math.pow(rNew, 1.6) * 1.1; gNew = Math.pow(gNew, 1.6) * 1.1; bNew = Math.pow(bNew, 1.6) * 1.1;
                         }
                         rNew *= bSet; gNew *= bSet; bNew *= bSet;
                         rNew = (rNew - 0.5) * cSet + 0.5; gNew = (gNew - 0.5) * cSet + 0.5; bNew = (bNew - 0.5) * cSet + 0.5;
 
                         let currentLuma = 0.2126 * rNew + 0.7152 * gNew + 0.0722 * bNew;
-                        let hiFactor = Math.max(0, currentLuma - 0.5) * 2, shFactor = Math.max(0, 0.5 - currentLuma) * 2;
+                        let hiFactor = Math.max(0, currentLuma - 0.55) * 2.2, shFactor = Math.max(0, 0.45 - currentLuma) * 2.2;
                         rNew += (hSet * hiFactor) + (shSet * shFactor);
                         gNew += (hSet * hiFactor) + (shSet * shFactor);
                         bNew += (hSet * hiFactor) + (shSet * shFactor);
 
-                        rNew += tSet * 0.25; bNew -= tSet * 0.25;
-                        gNew -= tintSet * 0.2; rNew += tintSet * 0.1; bNew += tintSet * 0.1;
+                        rNew += tSet * 0.15; bNew -= tSet * 0.15;
+                        gNew -= tintSet * 0.12; rNew += tintSet * 0.06; bNew += tintSet * 0.06;
 
                         if (gNew > rNew && gNew > bNew) {
                             let greenDominance = gNew - Math.max(rNew, bNew);
@@ -776,27 +817,19 @@
                         gNew = finalLuma + (gNew - finalLuma) * sSet;
                         bNew = finalLuma + (bNew - finalLuma) * sSet;
 
-                        rNew = Math.max(0, Math.min(1, rNew)).toFixed(6);
-                        gNew = Math.max(0, Math.min(1, gNew)).toFixed(6);
-                        bNew = Math.max(0, Math.min(1, bNew)).toFixed(6);
-                        cubeContent += `${rNew} ${gNew} ${bNew}\n`;
+                        cubeContent += `${Math.max(0, Math.min(1, rNew)).toFixed(6)} ${Math.max(0, Math.min(1, gNew)).toFixed(6)} ${Math.max(0, Math.min(1, bNew)).toFixed(6)}\n`;
                     }
                 }
             }
 
             const blob = new Blob([cubeContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'Sopcare_Production_Color.cube';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = url; a.download = 'Sopcare_Production_Color.cube';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
 
         window.onload = () => {
-            createDefaultSample();
-            initSplitScreen();
-            initDragAndDrop();
-            renderCustomPresets();
+            createDefaultSample(); initSplitScreen(); initDragAndDrop(); renderCustomPresets();
             setTimeout(applyFilters, 150);
         };
     </script>
