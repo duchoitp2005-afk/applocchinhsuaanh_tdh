@@ -365,9 +365,9 @@
 
         let originalImage = new Image();
         let glTexture = null;
-        let lutTexture = null; // Khởi tạo bộ nhớ chứa 3D LUT
+        let lutTexture = null; 
         let glProgram = null;
-        let hasLut = 0; // Biến đánh dấu có dùng LUT ngoài hay không
+        let hasLut = 0; 
         const sliderIds = ['brightness', 'contrast', 'saturation', 'highlights', 'shadows', 'temp', 'tint', 'greenSat'];
 
         if (!gl) { alert("Trình duyệt không hỗ trợ WebGL2!"); }
@@ -381,14 +381,13 @@
             }
         `;
 
-        // FRAGMENT SHADER ĐÃ ĐƯỢC CHÈN THÊM CƠ CHẾ TRA CỨU 3D LUT (SAMPLER3D)
         const fsSource = `#version 300 es
             precision highp float;
-            precision highp sampler3D; // Khai báo sử dụng bộ lọc ma trận 3D
+            precision highp sampler3D; 
             
             in vec2 v_texCoord;
             uniform sampler2D u_image;
-            uniform sampler3D u_lutTexture; // Nhận ma trận màu 3D từ file .cube
+            uniform sampler3D u_lutTexture; 
             
             uniform float u_brightness;
             uniform float u_contrast;
@@ -399,7 +398,7 @@
             uniform float u_tint;
             uniform float u_greenSat;
             uniform int u_isLog;
-            uniform int u_hasLut; // 1 nếu có LUT, 0 nếu không
+            uniform int u_hasLut; 
 
             out vec4 outColor;
 
@@ -407,39 +406,31 @@
                 vec4 color = texture(u_image, v_texCoord);
                 vec3 rgb = color.rgb;
 
-                // 1. Áp dụng 3D LUT trước nếu người dùng tải file .cube lên
                 if (u_hasLut == 1) {
-                    // Tra cứu màu pixel trong không gian ma trận 3D LUT
                     rgb = texture(u_lutTexture, rgb).rgb;
                 }
 
-                // 2. Phục hồi Log profile
                 if (u_isLog == 1) {
                     rgb = pow(max(vec3(0.0), rgb), vec3(1.65)) * 1.12;
                 }
 
-                // 3. Brightness & Contrast
                 rgb *= u_brightness;
                 rgb = (rgb - 0.5) * u_contrast + 0.5;
 
-                // 4. Highlights & Shadows Phân rã
                 float luma = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
                 float hiFactor = clamp((luma - 0.55) * 2.2, 0.0, 1.0);
                 float shFactor = clamp((0.45 - luma) * 2.2, 0.0, 1.0);
                 rgb += vec3(u_highlights * hiFactor + u_shadows * shFactor);
 
-                // 5. Temperature & Tint
                 rgb.r += u_temp * 0.12; rgb.b -= u_temp * 0.12;
                 rgb.g -= u_tint * 0.10; rgb.r += u_tint * 0.05; rgb.b += u_tint * 0.05;
 
-                // 6. HSL Green Isolation (Tối ưu riêng cho cây cối)
                 if (rgb.g > rgb.r * 1.02 && rgb.g > rgb.b * 1.02) {
                     float greenDominance = rgb.g - max(rgb.r, rgb.b);
                     rgb.g = rgb.g * u_greenSat + (1.0 - u_greenSat) * luma * greenDominance;
                     rgb.r *= (1.0 + (u_greenSat - 1.0) * 0.08);
                 }
 
-                // 7. Master Saturation
                 float finalLuma = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
                 rgb = finalLuma + (rgb - finalLuma) * u_saturation;
 
@@ -475,7 +466,6 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         }
 
-        // THUẬT TOÁN ĐỌC VÀ PARSE FILE .CUBE THÀNH MẢNG DỮ LIỆU 3D 
         function loadCubeLUT(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -494,7 +484,7 @@
                     
                     let parts = line.split(/\s+/);
                     if (parts.length === 3) {
-                        lutData.push(parseFloat(parts[0]), parseFloat(parts[1]), parseFloat(parts[2]), 1.0); // RGBA
+                        lutData.push(parseFloat(parts[0]), parseFloat(parts[1]), parseFloat(parts[2]), 1.0);
                     }
                 }
 
@@ -509,7 +499,6 @@
             reader.readAsText(file);
         }
 
-        // ĐẨY MẢNG MÀU LUT VÀO BỘ NHỚ 3D TEXTURE CỦA GPU
         function uploadLutToGPU(size, dataArray) {
             if (lutTexture) gl.deleteTexture(lutTexture);
             lutTexture = gl.createTexture();
@@ -519,8 +508,6 @@
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            
-            // Nạp cấu trúc dữ liệu ma trận 3 chiều vào GPU
             gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA32F, size, size, size, 0, gl.RGBA, gl.FLOAT, dataArray);
         }
 
@@ -533,13 +520,11 @@
 
             gl.useProgram(glProgram);
             
-            // Texture 0: Ảnh gốc
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, glTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, originalImage);
             gl.uniform1i(gl.getUniformLocation(glProgram, "u_image"), 0);
 
-            // Texture 1: Ma trận 3D LUT ngoài
             if (hasLut === 1 && lutTexture) {
                 gl.activeTexture(gl.TEXTURE1);
                 gl.bindTexture(gl.TEXTURE_3D, lutTexture);
@@ -547,7 +532,6 @@
             }
             gl.uniform1i(gl.getUniformLocation(glProgram, "u_hasLut"), hasLut);
 
-            // Đồng bộ thanh trượt Slider
             gl.uniform1f(gl.getUniformLocation(glProgram, "u_brightness"), parseFloat(document.getElementById('slider-brightness').value));
             gl.uniform1f(gl.getUniformLocation(glProgram, "u_contrast"), parseFloat(document.getElementById('slider-contrast').value));
             gl.uniform1f(gl.getUniformLocation(glProgram, "u_saturation"), parseFloat(document.getElementById('slider-saturation').value));
@@ -588,7 +572,6 @@
             drawChannel(bHist, 'rgba(0, 136, 255, 0.4)');
         }
 
-        // TỰ ĐỘNG PHÂN BIỆT: NẾU LÀ FILE ẢNH THÌ ĐỔI MONITOR, NẾU LÀ FILE .CUBE THÌ ÁP DỤNG LUT
         function processFile(file) {
             if (!file) return;
             if (file.type.startsWith('image/')) {
@@ -622,7 +605,7 @@
         function applyPreset(type, btnElement) {
             document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
-            hasLut = 0; // Tắt LUT ngoài khi dùng preset có sẵn
+            hasLut = 0; 
 
             const settings = {
                 default:   { brightness: 1.0, contrast: 1.0, saturation: 1.0, highlights: 0.0, shadows: 0.0, temp: 0.0, tint: 0.0, greenSat: 1.0 },
@@ -657,6 +640,6 @@
             originalImage.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='270'><rect width='100%25' height='100%25' fill='%2327ae60'/><circle cx='240' cy='135' r='60' fill='%23f1c40f'/></svg>";
             originalImage.onload = () => draw();
         };
-                </script>
+    </script>
 </body>
 </html>
