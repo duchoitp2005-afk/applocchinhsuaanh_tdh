@@ -5,373 +5,799 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#121212">
-    <title>Sopcare - AI Slider Cam Studio</title>
+    <meta name="theme-color" content="#0a0b0e">
+    <title>Sopcare - AI Slider Cam Studio Production OS</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: #0a0b0e;
+            color: #f0f3f6;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding: 15px;
+            padding: 12px;
+            background-image: radial-gradient(circle at 50% 5%, #141722 0%, #0a0b0e 80%);
+            overflow-x: hidden;
         }
 
         header {
             width: 100%;
             max-width: 500px;
             text-align: center;
-            padding: 10px 0 20px 0;
+            padding: 6px 0;
         }
 
         header h1 {
             font-size: 1.4rem;
             color: #00fff0;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0, 255, 240, 0.3);
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px rgba(0, 255, 240, 0.4);
         }
 
         header p {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 5px;
+            font-size: 0.7rem;
+            color: #6c7a89;
+            margin-top: 2px;
+            font-weight: 600;
         }
 
         .studio-container {
             width: 100%;
             max-width: 500px;
-            background: #1e1e1e;
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            border: 1px solid #2a2a2a;
+            background: rgba(20, 23, 33, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Khung hiển thị ảnh */
-        .preview-box {
+        .preview-wrapper {
             position: relative;
             width: 100%;
             aspect-ratio: 16 / 9;
-            background: #000;
-            border-radius: 10px;
+            background: #020304;
+            border-radius: 14px;
             overflow: hidden;
-            margin-bottom: 20px;
-            border: 1px solid #333;
+            border: 1px solid #1f2430;
+            user-select: none;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .preview-wrapper.drag-hover {
+            border-color: #00fff0;
+            background-color: rgba(0, 255, 240, 0.05);
+        }
+
+        .preview-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .preview-box canvas {
+        #preview-canvas, #original-canvas {
+            position: absolute;
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
         }
 
-        .upload-label {
+        .split-original-wrapper {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0, 255, 240, 0.2);
-            border: 1px solid #00fff0;
-            color: #00fff0;
-            padding: 6px 12px;
-            border-radius: 20px;
+            left: 0;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+        }
+
+        #original-canvas {
+            left: 0;
+            max-width: none;
+            max-height: none;
+        }
+
+        .split-bar {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 4px;
+            height: 100%;
+            background: #00fff0;
+            cursor: ew-resize;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(0, 255, 240, 0.8);
+            z-index: 10;
+        }
+
+        .split-bar::after {
+            content: "↔";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            background: #00fff0;
+            color: #000;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .scopes-panel {
+            width: 100%;
+            height: 50px;
+            background: #020304;
+            margin-top: 6px;
+            border-radius: 8px;
+            border: 1px solid #1f2430;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scopes-panel canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .scopes-label {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            font-size: 0.55rem;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .btn-action {
+            width: 100%;
+            background: #171b26;
+            border: 1px solid #293043;
+            color: #a0aec0;
+            padding: 8px;
+            border-radius: 10px;
             font-size: 0.75rem;
+            font-weight: 600;
             cursor: pointer;
-            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #file-input { display: none; }
+
+        .tabs-header {
+            display: flex;
+            background: #10131c;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 12px;
+            border: 1px solid #1f2430;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #718096;
+            padding: 8px 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 7px;
             transition: all 0.2s;
         }
 
-        .upload-label:active {
-            background: #00fff0;
-            color: #000;
+        .tab-btn.active {
+            background: #171b26;
+            color: #00fff0;
+            box-shadow: inset 0 0 8px rgba(0, 255, 240, 0.05);
         }
 
-        #file-input {
+        .tab-content {
             display: none;
+            background: rgba(16, 19, 28, 0.4);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid rgba(31, 36, 48, 0.5);
+            min-height: 190px;
         }
 
-        /* Khung điều khiển Sliders */
+        .tab-content.active {
+            display: block;
+        }
+
+        .select-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .select-group label {
+            font-size: 0.75rem;
+            color: #8a99ad;
+            font-weight: 600;
+        }
+
+        .select-group select {
+            background: #171b26;
+            color: #00fff0;
+            border: 1px solid #293043;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            color: #6c7a89;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .btn-preset {
+            background: #10131c;
+            border: 1px solid #1f2430;
+            color: #cbd5e0;
+            padding: 6px 2px;
+            border-radius: 6px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-preset.active {
+            background: rgba(0, 255, 240, 0.1);
+            border-color: #00fff0;
+            color: #00fff0;
+        }
+
+        .custom-preset-box {
+            display: flex;
+            gap: 6px;
+        }
+
+        .custom-preset-box input {
+            flex: 2;
+            background: #10131c;
+            border: 1px solid #1f2430;
+            padding: 6px 10px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.75rem;
+            outline: none;
+        }
+
+        .custom-preset-box button {
+            flex: 1;
+            background: #171b26;
+            color: #00fff0;
+            border: 1px solid #293043;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .style-guide-card {
+            background: rgba(10, 12, 18, 0.8);
+            border: 1px dashed rgba(0, 255, 240, 0.2);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 10px;
+        }
+
+        .style-guide-title {
+            font-size: 0.68rem;
+            color: #00fff0;
+            font-weight: bold;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .style-guide-text {
+            font-size: 0.65rem;
+            color: #a0aec0;
+            line-height: 1.3;
+        }
+
         .control-group {
-            margin-bottom: 18px;
+            margin-bottom: 12px;
         }
 
         .control-label {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-            color: #aaa;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            color: #a0aec0;
         }
 
         .control-label span:last-child {
             color: #00fff0;
             font-family: monospace;
+            font-weight: bold;
         }
 
         .slider {
             -webkit-appearance: none;
             width: 100%;
-            height: 6px;
-            background: #333;
-            border-radius: 3px;
+            height: 4px;
+            border-radius: 2px;
             outline: none;
+            background: #171b26;
         }
 
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: #00fff0;
+            background: #f0f3f6;
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(0, 255, 240, 0.5);
+            border: 1px solid #0a0b0e;
         }
 
-        /* Nút chức năng */
+        #slider-temp { background: linear-gradient(to right, #3498db, #171b26, #f39c12); }
+        #slider-tint { background: linear-gradient(to right, #2ecc71, #171b26, #9b59b6); }
+        #slider-greenSat { background: linear-gradient(to right, #111, #2ecc71); }
+
         .btn-container {
             display: flex;
-            gap: 10px;
-            margin-top: 25px;
+            gap: 8px;
+            margin-top: 15px;
         }
 
-        button {
-            flex: 1;
-            padding: 12px;
+        .btn-main {
+            padding: 12px 6px;
             border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: bold;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
-        .btn-reset {
-            background: #2a2a2a;
-            color: #aaa;
-            border: 1px solid #333;
-        }
-
-        .btn-reset:active {
-            background: #333;
-        }
-
-        .btn-export {
-            background: linear-gradient(135deg, #00fff0, #00b8ff);
-            color: #000;
-            box-shadow: 0 4px 15px rgba(0, 255, 240, 0.3);
-        }
-
-        .btn-export:active {
-            transform: scale(0.98);
-            opacity: 0.9;
-        }
+        .btn-reset { flex: 1; background: #171b26; color: #a0aec0; border: 1px solid #293043; }
+        .btn-photo { flex: 1.5; background: #22293a; color: #fff; border: 1px solid #00fff0; }
+        .btn-export { flex: 2; background: linear-gradient(135deg, #00fff0, #00b8ff); color: #0a0b0e; box-shadow: 0 4px 15px rgba(0, 255, 240, 0.25); }
     </style>
 </head>
 <body>
 
     <header>
         <h1>Sopcare</h1>
-        <p>AI Slider Cam Studio • LUT Generator</p>
+        <p>AI Slider Cam Studio • Master Production OS</p>
     </header>
 
     <div class="studio-container">
-        <div class="preview-box">
-            <canvas id="preview-canvas"></canvas>
-            <label for="file-input" class="upload-label">Đổi ảnh mẫu</label>
+        <div class="preview-wrapper" id="monitor-wrapper">
+            <div class="preview-container">
+                <canvas id="preview-canvas"></canvas>
+                <div class="split-original-wrapper" id="split-wrapper">
+                    <canvas id="original-canvas"></canvas>
+                </div>
+                <div class="split-bar" id="split-handler"></div>
+            </div>
+        </div>
+
+        <div class="scopes-panel">
+            <div class="scopes-label">Real-Time Color Scope</div>
+            <canvas id="histogram-canvas"></canvas>
+        </div>
+
+        <div class="action-bar">
+            <label for="file-input" class="btn-action">📂 Chọn Ảnh Hoặc Thả Ảnh Vào Monitor</label>
             <input type="file" id="file-input" accept="image/*">
         </div>
 
-        <div class="control-group">
-            <div class="control-label">
-                <span>Độ sáng (Brightness)</span>
-                <span id="val-brightness">1.00</span>
-            </div>
-            <input type="range" id="slider-brightness" class="slider" min="0.5" max="1.5" step="0.02" value="1">
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('luma', this)">☀️ LUMA</button>
+            <button class="tab-btn" onclick="switchTab('color', this)">🌡️ COLOR</button>
+            <button class="tab-btn" onclick="switchTab('presets', this)">🎨 LOOKS</button>
         </div>
 
-        <div class="control-group">
-            <div class="control-label">
-                <span>Độ tương phản (Contrast)</span>
-                <span id="val-contrast">1.00</span>
+        <div id="tab-luma" class="tab-content active">
+            <div class="control-group">
+                <div class="control-label"><span>Độ sáng (Brightness)</span><span id="val-brightness">1.00</span></div>
+                <input type="range" id="slider-brightness" class="slider" min="0.5" max="1.5" step="0.02" value="1">
             </div>
-            <input type="range" id="slider-contrast" class="slider" min="0.5" max="1.5" step="0.02" value="1">
+            <div class="control-group">
+                <div class="control-label"><span>Độ tương phản (Contrast)</span><span id="val-contrast">1.00</span></div>
+                <input type="range" id="slider-contrast" class="slider" min="0.5" max="1.5" step="0.02" value="1">
+            </div>
+            <div class="control-group">
+                <div class="control-label"><span>Vùng sáng (Highlights)</span><span id="val-highlights">0.00</span></div>
+                <input type="range" id="slider-highlights" class="slider" min="-0.4" max="0.4" step="0.02" value="0">
+            </div>
+            <div class="control-group">
+                <div class="control-label"><span>Vùng tối (Shadows)</span><span id="val-shadows">0.00</span></div>
+                <input type="range" id="slider-shadows" class="slider" min="-0.4" max="0.4" step="0.02" value="0">
+            </div>
         </div>
 
-        <div class="control-group">
-            <div class="control-label">
-                <span>Độ bão hòa màu (Saturation)</span>
-                <span id="val-saturation">1.00</span>
+        <div id="tab-color" class="tab-content">
+            <div class="control-group">
+                <div class="control-label"><span>Độ bão hòa (Saturation)</span><span id="val-saturation">1.00</span></div>
+                <input type="range" id="slider-saturation" class="slider" min="0.0" max="2.0" step="0.04" value="1">
             </div>
-            <input type="range" id="slider-saturation" class="slider" min="0.0" max="2.0" step="0.04" value="1">
+            <div class="control-group">
+                <div class="control-label"><span>Nhiệt độ màu (Temperature)</span><span id="val-temp">0.00</span></div>
+                <input type="range" id="slider-temp" class="slider" min="-0.3" max="0.3" step="0.01" value="0">
+            </div>
+            <div class="control-group">
+                <div class="control-label"><span>Sắc thái (Tint)</span><span id="val-tint">0.00</span></div>
+                <input type="range" id="slider-tint" class="slider" min="-0.2" max="0.2" step="0.01" value="0">
+            </div>
+            <div class="control-group">
+                <div class="control-label"><span>Bão hòa Lá cây (HSL Green)</span><span id="val-greenSat">1.00</span></div>
+                <input type="range" id="slider-greenSat" class="slider" min="0.0" max="2.0" step="0.05" value="1">
+            </div>
+        </div>
+
+        <div id="tab-presets" class="tab-content">
+            <div class="select-group">
+                <label for="select-colorspace">Hệ màu gốc (Input Log)</label>
+                <select id="select-colorspace" onchange="applyFilters()">
+                    <option value="rec709">Standard (Rec.709)</option>
+                    <option value="bmdlog">Blackmagic Film LOG</option>
+                </select>
+            </div>
+            <div class="section-title">Built-in Looks</div>
+            <div class="presets-grid">
+                <button class="btn-preset active" onclick="applyPreset('default', this)">Gốc</button>
+                <button class="btn-preset" onclick="applyPreset('cinematic', this)">Teal/Orange</button>
+                <button class="btn-preset" onclick="applyPreset('vintage', this)">Hoài Cổ</button>
+                <button class="btn-preset" onclick="applyPreset('bw', this)">Trắng Đen</button>
+            </div>
+            <div class="section-title">Custom Saved Looks</div>
+            <div class="custom-preset-box">
+                <input type="text" id="preset-name-input" placeholder="Đặt tên Look màu...">
+                <button onclick="saveCustomPreset()">💾 Lưu</button>
+            </div>
+            <div id="custom-presets-container" class="presets-grid" style="margin-top:6px; margin-bottom:6px;"></div>
+            
+            <div class="style-guide-card">
+                <div class="style-guide-title">💡 Gợi ý Công thức Màu Thực Vật & Điện Ảnh:</div>
+                <div class="style-guide-text">
+                    • <b>Phim Mỹ (Teal/Orange):</b> Khuyên dùng Temp +0.12, Tint -0.04, Saturation 1.10.<br>
+                    • <b>Màu Cây Cối/Phong Cảnh:</b> Hãy đẩy HSL Green lên 1.35, dìm Highlights xuống -0.10 để cứu chi tiết lá cây bị lóa sáng.<br>
+                    • <b>Điện Ảnh Hồng Kông:</b> Đẩy Kháng tương phản nhẹ, Temp +0.08, Tint +0.05 (Hơi ngả tím nhẹ lãng mạn).
+                </div>
+            </div>
         </div>
 
         <div class="btn-container">
-            <button class="btn-reset" onclick="resetSliders()">Đặt lại</button>
-            <button class="btn-export" onclick="exportToCube()">Xuất file .CUBE</button>
+            <button class="btn-main btn-reset" onclick="resetSliders()">Đặt lại</button>
+            <button class="btn-main btn-photo" onclick="exportToImage()">📸 TẢI ẢNH (.JPG)</button>
+            <button class="btn-main btn-export" onclick="exportToCube()">XUẤT LUT (.CUBE)</button>
         </div>
     </div>
-
-    <script>
+        <script>
         const canvas = document.getElementById('preview-canvas');
         const ctx = canvas.getContext('2d');
-        const fileInput = document.getElementById('file-input');
-
-        // Khởi tạo ảnh mặc định (Ảnh phong cảnh giả lập để test màu ban đầu)
-        let originalImage = new Image();
+        const origCanvas = document.getElementById('original-canvas');
+        const origCtx = origCanvas.getContext('2d');
+        const histCanvas = document.getElementById('histogram-canvas');
+        const histCtx = histCanvas.getContext('2d');
         
-        // Tạo ảnh màu gốc gradient nếu chưa upload ảnh mới
-        function createDefaultSample() {
-            canvas.width = 640;
-            canvas.height = 360;
-            // Tạo một hình ảnh mẫu đầy màu sắc để người dùng dễ nhìn thấy sự thay đổi của LUT
-            let grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-            grad.addColorStop(0, '#ff0055');
-            grad.addColorStop(0.5, '#00ffaa');
-            grad.addColorStop(1, '#0055ff');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Vẽ thêm vài chi tiết khối để test độ tương phản
-            ctx.fillStyle = "rgba(255,255,255,0.8)";
-            ctx.fillRect(100, 80, 150, 150);
-            ctx.fillStyle = "rgba(0,0,0,0.6)";
-            ctx.fillRect(380, 120, 160, 150);
-            
-            originalImage.src = canvas.toDataURL();
+        const fileInput = document.getElementById('file-input');
+        const monitorWrapper = document.getElementById('monitor-wrapper');
+        const splitWrapper = document.getElementById('split-wrapper');
+        const splitHandler = document.getElementById('split-handler');
+
+        let originalImage = new Image();
+        const sliderIds = ['brightness', 'contrast', 'saturation', 'highlights', 'shadows', 'temp', 'tint', 'greenSat'];
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btnElement.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
         }
 
-        // Lắng nghe sự kiện kéo slider để cập nhật số hiển thị và cập nhật ảnh vẽ
-        const sliders = ['brightness', 'contrast', 'saturation'];
-        sliders.forEach(id => {
-            const el = document.getElementById(`slider-${id}`);
-            el.addEventListener('input', () => {
-                document.getElementById(`val-${id}`).innerText = parseFloat(el.value).toFixed(2);
-                applyFilters();
+        function initDragAndDrop() {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                monitorWrapper.addEventListener(eventName, (e) => { e.preventDefault(); monitorWrapper.classList.add('drag-hover'); }, false);
             });
-        });
+            ['dragleave', 'drop'].forEach(eventName => {
+                monitorWrapper.addEventListener(eventName, (e) => { e.preventDefault(); monitorWrapper.classList.remove('drag-hover'); }, false);
+            });
+            monitorWrapper.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer; const files = dt.files;
+                if (files.length > 0) { processFile(files[0]); }
+            }, false);
+        }
 
-        // Xử lý khi người dùng upload ảnh mới của họ lên
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
+        function processFile(file) {
+            if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (event) => {
                     originalImage = new Image();
                     originalImage.onload = () => {
-                        // Tính toán giữ nguyên tỉ lệ ảnh
-                        canvas.width = originalImage.width;
-                        canvas.height = originalImage.height;
+                        const targetWidth = originalImage.width > 800 ? 800 : originalImage.width;
+                        const targetHeight = (targetWidth * originalImage.height) / originalImage.width;
+                        canvas.width = targetWidth; canvas.height = targetHeight;
+                        origCanvas.width = targetWidth; origCanvas.height = targetHeight;
+                        origCtx.drawImage(originalImage, 0, 0, targetWidth, targetHeight);
                         applyFilters();
                     };
                     originalImage.src = event.target.result;
                 };
                 reader.readAsDataURL(file);
             }
-        });
-
-        // Hàm áp dụng hiệu ứng lên Canvas để xem trước (Live Preview)
-        function applyFilters() {
-            if (!originalImage.src) return;
-            
-            const b = document.getElementById('slider-brightness').value;
-            const c = document.getElementById('slider-contrast').value;
-            const s = document.getElementById('slider-saturation').value;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Sử dụng CSS filter của Canvas để render thời gian thực cực mượt
-            // Biến đổi giá trị sang định dạng chuẩn của CSS
-            const brightnessPercent = b * 100;
-            const contrastPercent = c * 100;
-            const saturatePercent = s * 100;
-
-            ctx.filter = `brightness(${brightnessPercent}%) contrast(${contrastPercent}%) saturate(${saturatePercent}%)`;
-            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
         }
 
-        // Hàm Đặt lại các thông số về mặc định (1.0)
-        function resetSliders() {
-            sliders.forEach(id => {
-                document.getElementById(`slider-${id}`).value = 1;
-                document.getElementById(`val-${id}`).innerText = "1.00";
+        function createDefaultSample() {
+            const w = 480, h = 270;
+            canvas.width = w; canvas.height = h;
+            origCanvas.width = w; origCanvas.height = h;
+            let grad = ctx.createLinearGradient(0, 0, w, h);
+            grad.addColorStop(0, '#e74c3c'); grad.addColorStop(0.3, '#2ecc71');
+            grad.addColorStop(0.7, '#f1c40f'); grad.addColorStop(1, '#3498db');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = "rgba(255,255,255,0.85)";
+            ctx.beginPath(); ctx.arc(130, 130, 60, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = "rgba(15,15,25,0.8)"; ctx.fillRect(260, 70, 140, 130);
+            originalImage.src = canvas.toDataURL();
+        }
+
+        function initSplitScreen() {
+            let isDragging = false;
+            const moveSplit = (clientX) => {
+                const rect = monitorWrapper.getBoundingClientRect();
+                let position = ((clientX - rect.left) / rect.width) * 100;
+                position = Math.max(0, Math.min(100, position));
+                splitHandler.style.left = `${position}%`;
+                splitWrapper.style.width = `${position}%`;
+            };
+            splitHandler.addEventListener('mousedown', () => isDragging = true);
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('mousemove', (e) => { if (isDragging) moveSplit(e.clientX); });
+            splitHandler.addEventListener('touchstart', () => isDragging = true);
+            window.addEventListener('touchend', () => isDragging = false);
+            window.addEventListener('touchmove', (e) => { if (isDragging) moveSplit(e.touches[0].clientX); });
+        }
+
+        sliderIds.forEach(id => {
+            const el = document.getElementById(`slider-${id}`);
+            el.addEventListener('input', () => {
+                document.getElementById(`val-${id}`).innerText = parseFloat(el.value).toFixed(2);
+                if(el.value != el.getAttribute('value')) {
+                    document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+                }
+                applyFilters();
+            });
+        });
+
+        fileInput.addEventListener('change', (e) => { processFile(e.target.files[0]); });
+
+        function applyPreset(type, btnElement) {
+            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+
+            const settings = {
+                default:   { brightness: 1.0, contrast: 1.0, saturation: 1.0, highlights: 0.0, shadows: 0.0, temp: 0.0, tint: 0.0, greenSat: 1.0 },
+                cinematic: { brightness: 0.96, contrast: 1.16, saturation: 1.10, highlights: -0.06, shadows: 0.04, temp: 0.12, tint: -0.04, greenSat: 0.8 },
+                vintage:   { brightness: 1.02, contrast: 0.86, saturation: 0.75, highlights: -0.10, shadows: 0.12, temp: 0.15, tint: 0.06, greenSat: 1.2 },
+                bw:        { brightness: 1.0, contrast: 1.25, saturation: 0.0, highlights: 0.0, shadows: -0.06, temp: 0.0, tint: 0.0, greenSat: 0.0 }
+            };
+
+            const set = settings[type] || settings.default;
+            sliderIds.forEach(id => {
+                document.getElementById(`slider-${id}`).value = set[id];
+                document.getElementById(`val-${id}`).innerText = set[id].toFixed(2);
             });
             applyFilters();
         }
 
-        // THUẬT TOÁN QUAN TRỌNG: Tạo ma trận màu 3D và xuất file .CUBE chuẩn Blackmagic
+        function applyFilters() {
+            if (!originalImage.src) return;
+            origCtx.clearRect(0, 0, origCanvas.width, origCanvas.height);
+            origCtx.drawImage(originalImage, 0, 0, origCanvas.width, origCanvas.height);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const b = document.getElementById('slider-brightness').value * 100;
+            const c = document.getElementById('slider-contrast').value * 100;
+            const s = document.getElementById('slider-saturation').value * 100;
+            const t = document.getElementById('slider-temp').value;
+            const colorSpace = document.getElementById('select-colorspace').value;
+
+            let logPrep = colorSpace === 'bmdlog' ? 'contrast(65%) brightness(120%) saturate(80%) ' : '';
+            ctx.filter = `${logPrep}brightness(${b}%) contrast(${c}%) saturate(${s}%) hue-rotate(${t * 40}deg) sepia(${t > 0 ? t * 20 : 0}%)`;
+            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+            drawHistogram();
+        }
+
+        function drawHistogram() {
+            histCanvas.width = histCanvas.parentElement.clientWidth; histCanvas.height = 50;
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            let rHist = new Array(256).fill(0), gHist = new Array(256).fill(0), bHist = new Array(256).fill(0);
+            for (let i = 0; i < data.length; i += 16) { rHist[data[i]]++; gHist[data[i+1]]++; bHist[data[i+2]]++; }
+            let maxVal = Math.max(...rHist, ...gHist, ...bHist);
+            histCtx.clearRect(0, 0, histCanvas.width, histCanvas.height);
+            histCtx.globalCompositeOperation = 'screen';
+
+            function drawChannel(histArray, color) {
+                histCtx.fillStyle = color;
+                const binWidth = histCanvas.width / 256;
+                for (let i = 0; i < 256; i++) {
+                    let h = (histArray[i] / maxVal) * histCanvas.height;
+                    histCtx.fillRect(i * binWidth, histCanvas.height - h, binWidth, h);
+                }
+            }
+            drawChannel(rHist, 'rgba(255, 0, 85, 0.4)');
+            drawChannel(gHist, 'rgba(0, 255, 170, 0.4)');
+            drawChannel(bHist, 'rgba(0, 136, 255, 0.4)');
+        }
+
+        function exportToImage() {
+            if (!originalImage.src) return;
+            const link = document.createElement('a');
+            link.download = 'Sopcare_Graded_Master.jpg';
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function saveCustomPreset() {
+            const nameInput = document.getElementById('preset-name-input');
+            const name = nameInput.value.trim() || "Custom Look " + (Object.keys(getSavedPresets()).length + 1);
+            const currentSettings = {};
+            sliderIds.forEach(id => { currentSettings[id] = parseFloat(document.getElementById(`slider-${id}`).value); });
+            const savedPresets = getSavedPresets();
+            savedPresets[name] = currentSettings;
+            localStorage.setItem('sopcare_custom_presets', JSON.stringify(savedPresets));
+            nameInput.value = '';
+            renderCustomPresets();
+        }
+
+        function getSavedPresets() {
+            const data = localStorage.getItem('sopcare_custom_presets');
+            return data ? JSON.parse(data) : {};
+        }
+
+        function renderCustomPresets() {
+            const container = document.getElementById('custom-presets-container');
+            container.innerHTML = '';
+            const savedPresets = getSavedPresets();
+            Object.keys(savedPresets).forEach(name => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-preset'; btn.innerText = name;
+                btn.onclick = function() {
+                    document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const set = savedPresets[name];
+                    sliderIds.forEach(id => {
+                        document.getElementById(`slider-${id}`).value = set[id];
+                        document.getElementById(`val-${id}`).innerText = set[id].toFixed(2);
+                    });
+                    applyFilters();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function resetSliders() { applyPreset('default', document.querySelectorAll('.btn-preset')[0]); }
+
         function exportToCube() {
-            const bSetting = parseFloat(document.getElementById('slider-brightness').value);
-            const cSetting = parseFloat(document.getElementById('slider-contrast').value);
-            const sSetting = parseFloat(document.getElementById('slider-saturation').value);
+            const bSet = parseFloat(document.getElementById('slider-brightness').value);
+            const cSet = parseFloat(document.getElementById('slider-contrast').value);
+            const sSet = parseFloat(document.getElementById('slider-saturation').value);
+            const hSet = parseFloat(document.getElementById('slider-highlights').value);
+            const shSet = parseFloat(document.getElementById('slider-shadows').value);
+            const tSet = parseFloat(document.getElementById('slider-temp').value);
+            const tintSet = parseFloat(document.getElementById('slider-tint').value);
+            const gSatSet = parseFloat(document.getElementById('slider-greenSat').value);
+            const colorSpace = document.getElementById('select-colorspace').value;
 
-            const size = 33; // Kích thước ma trận 3D LUT tiêu chuẩn cho thiết bị phần cứng
-            let cubeContent = `TITLE "Sopcare_AI_Studio_LUT"\n`;
-            cubeContent += `LUT_3D_SIZE ${size}\n\n`;
+            const size = 33;
+            let cubeContent = `TITLE "Sopcare_AI_Studio_OS_LUT"\nLUT_3D_SIZE ${size}\n\n`;
 
-            // Chạy 3 vòng lặp lồng nhau cho 3 trục màu R, G, B
             for (let b = 0; b < size; b++) {
                 for (let g = 0; g < size; g++) {
                     for (let r = 0; r < size; r++) {
-                        // Tọa độ màu gốc trong không gian [0.0 - 1.0]
-                        let rOrig = r / (size - 1);
-                        let gOrig = g / (size - 1);
-                        let bOrig = b / (size - 1);
+                        let rNew = r / (size - 1), gNew = g / (size - 1), bNew = b / (size - 1);
+                        if (colorSpace === 'bmdlog') {
+                            rNew = Math.pow(rNew, 1.8) * 1.1; gNew = Math.pow(gNew, 1.8) * 1.1; bNew = Math.pow(bNew, 1.8) * 1.1;
+                        }
+                        rNew *= bSet; gNew *= bSet; bNew *= bSet;
+                        rNew = (rNew - 0.5) * cSet + 0.5; gNew = (gNew - 0.5) * cSet + 0.5; bNew = (bNew - 0.5) * cSet + 0.5;
 
-                        // 1. Áp dụng Độ sáng (Brightness)
-                        let rNew = rOrig * bSetting;
-                        let gNew = gOrig * bSetting;
-                        let bNew = bOrig * bSetting;
+                        let currentLuma = 0.2126 * rNew + 0.7152 * gNew + 0.0722 * bNew;
+                        let hiFactor = Math.max(0, currentLuma - 0.5) * 2, shFactor = Math.max(0, 0.5 - currentLuma) * 2;
+                        rNew += (hSet * hiFactor) + (shSet * shFactor);
+                        gNew += (hSet * hiFactor) + (shSet * shFactor);
+                        bNew += (hSet * hiFactor) + (shSet * shFactor);
 
-                        // 2. Áp dụng Độ tương phản (Contrast quanh điểm neo trung tâm 0.5)
-                        rNew = (rNew - 0.5) * cSetting + 0.5;
-                        gNew = (gNew - 0.5) * cSetting + 0.5;
-                        bNew = (bNew - 0.5) * cSetting + 0.5;
+                        rNew += tSet * 0.25; bNew -= tSet * 0.25;
+                        gNew -= tintSet * 0.2; rNew += tintSet * 0.1; bNew += tintSet * 0.1;
 
-                        // 3. Áp dụng Độ bão hòa màu (Saturation qua công thức tính Luma tiêu chuẩn)
-                        const luma = 0.2126 * rNew + 0.7152 * gNew + 0.0722 * bNew;
-                        rNew = luma + (rNew - luma) * sSetting;
-                        gNew = luma + (gNew - luma) * sSetting;
-                        bNew = luma + (bNew - luma) * sSetting;
+                        if (gNew > rNew && gNew > bNew) {
+                            let greenDominance = gNew - Math.max(rNew, bNew);
+                            gNew = gNew * gSatSet + (1 - gSatSet) * currentLuma * greenDominance;
+                        }
 
-                        // Đảm bảo dữ liệu không vượt quá ngưỡng quy định [0.0, 1.0] nhằm tránh lỗi hiển thị trên Monitor
+                        let finalLuma = 0.2126 * rNew + 0.7152 * gNew + 0.0722 * bNew;
+                        rNew = finalLuma + (rNew - finalLuma) * sSet;
+                        gNew = finalLuma + (gNew - finalLuma) * sSet;
+                        bNew = finalLuma + (bNew - finalLuma) * sSet;
+
                         rNew = Math.max(0, Math.min(1, rNew)).toFixed(6);
                         gNew = Math.max(0, Math.min(1, gNew)).toFixed(6);
                         bNew = Math.max(0, Math.min(1, bNew)).toFixed(6);
-
-                        // Đẩy dòng dữ liệu màu vào file text
                         cubeContent += `${rNew} ${gNew} ${bNew}\n`;
                     }
                 }
             }
 
-            // Tạo lệnh tải xuống trực tiếp trên trình duyệt
             const blob = new Blob([cubeContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Sopcare_Studio_Color.cube';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            a.href = url; a.download = 'Sopcare_Production_Color.cube';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
-        // Tự động chạy lần đầu khi mở trang web
         window.onload = () => {
             createDefaultSample();
-            setTimeout(applyFilters, 100);
+            initSplitScreen();
+            initDragAndDrop();
+            renderCustomPresets();
+            setTimeout(applyFilters, 150);
         };
     </script>
 </body>
