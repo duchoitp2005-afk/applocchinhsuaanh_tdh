@@ -3,170 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0b0e">
-    <title>Sopcare - AI WebGL GPU Studio</title>
+    <title>Sopcare - LUT Player</title>
     <style>
-        * {
-            box-sizing: border-box; margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background-color: #0a0b0e; color: #f0f3f6; display: flex;
-            flex-direction: column; align-items: center; min-height: 100vh;
-            padding: 12px; background-image: radial-gradient(circle at 50% 5%, #141722 0%, #0a0b0e 80%);
-            overflow-x: hidden;
-        }
-        header { width: 100%; max-width: 500px; text-align: center; padding: 6px 0; }
-        header h1 { font-size: 1.4rem; color: #00fff0; text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 0 15px rgba(0, 255, 240, 0.4); }
-        header p { font-size: 0.7rem; color: #6c7a89; margin-top: 2px; font-weight: 600; }
-        .studio-container {
-            width: 100%; max-width: 500px; background: rgba(20, 23, 33, 0.75);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 22px;
-            padding: 16px; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex; flex-direction: column;
-        }
-        .preview-wrapper {
-            position: relative; width: 100%; aspect-ratio: 16 / 9; background: #020304;
-            border-radius: 14px; overflow: hidden; border: 1px solid #1f2430; user-select: none;
-        }
-        .preview-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #0a0b0e; color: #fff; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 450px; background: #141722; padding: 15px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { text-align: center; font-size: 1.2rem; margin-bottom: 15px; color: #00fff0; }
+        .preview-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #23293a; }
         #preview-canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .scopes-panel { width: 100%; height: 50px; background: #020304; margin-top: 6px; border-radius: 8px; border: 1px solid #1f2430; overflow: hidden; position: relative; }
-        .scopes-panel canvas { width: 100%; height: 100%; }
-        .scopes-label { position: absolute; top: 4px; left: 6px; font-size: 0.55rem; color: rgba(255,255,255,0.3); text-transform: uppercase; pointer-events: none; }
-        .action-bar { display: flex; justify-content: center; width: 100%; margin: 10px 0; }
-        .btn-action { width: 100%; background: #171b26; border: 1px solid #293043; color: #a0aec0; padding: 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; text-align: center; }
-        #file-input { display: none; }
-        .tabs-header { display: flex; background: #10131c; border-radius: 10px; padding: 4px; margin-bottom: 12px; border: 1px solid #1f2430; }
-        .tab-btn { flex: 1; background: none; border: none; color: #718096; padding: 8px 0; font-size: 0.75rem; font-weight: 700; cursor: pointer; border-radius: 7px; }
-        .tab-btn.active { background: #171b26; color: #00fff0; }
-        .tab-content { display: none; background: rgba(16, 19, 28, 0.4); border-radius: 12px; padding: 12px; border: 1px solid rgba(31, 36, 48, 0.5); min-height: 190px; }
-        .tab-content.active { display: block; }
-        .control-group { margin-bottom: 12px; }
-        .control-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px; color: #a0aec0; }
-        .control-label span:last-child { color: #00fff0; font-family: monospace; }
-        .slider { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px; outline: none; background: #171b26; }
-        .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #f0f3f6; cursor: pointer; }
-        #slider-temp { background: linear-gradient(to right, #3498db, #171b26, #f39c12); }
-        #slider-tint { background: linear-gradient(to right, #2ecc71, #171b26, #9b59b6); }
-        #slider-greenSat { background: linear-gradient(to right, #111, #2ecc71); }
-        .select-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        .select-group label { font-size: 0.75rem; color: #8a99ad; }
-        .select-group select { background: #171b26; color: #00fff0; border: 1px solid #293043; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; outline: none; }
-        .section-title { font-size: 0.7rem; color: #6c7a89; text-transform: uppercase; margin-bottom: 8px; }
-        .presets-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-        .btn-preset { background: #10131c; border: 1px solid #1f2430; color: #cbd5e0; padding: 6px 2px; border-radius: 6px; font-size: 0.68rem; cursor: pointer; }
-        .btn-preset.active { background: rgba(0, 255, 240, 0.1); border-color: #00fff0; color: #00fff0; }
-        .btn-container { display: flex; gap: 8px; margin-top: 15px; }
-        .btn-main { padding: 12px 6px; border: none; border-radius: 10px; font-size: 0.78rem; font-weight: 700; cursor: pointer; flex: 1; }
-        .btn-reset { background: #171b26; color: #a0aec0; border: 1px solid #293043; }
-        .btn-photo { background: #22293a; color: #fff; border: 1px solid #00fff0; }
+        .btn { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; display: block; }
+        .btn-file { background: #1f2430; color: #a0aec0; border: 1px dashed #00fff0; }
+        .btn-save { background: #00fff0; color: #0a0b0e; }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Sopcare</h1>
-        <p>AI WebGL GPU Studio • Color Science OS</p>
-    </header>
-
-    <div class="studio-container">
-        <div class="preview-wrapper">
-            <div class="preview-container">
-                <canvas id="preview-canvas"></canvas>
-            </div>
+    <div class="container">
+        <h2>Sopcare LUT Player</h2>
+        
+        <div class="preview-box">
+            <canvas id="preview-canvas"></canvas>
         </div>
 
-        <div class="scopes-panel">
-            <div class="scopes-label">Real-Time GPU Color Scope</div>
-            <canvas id="histogram-canvas"></canvas>
-        </div>
+        <label for="input-img" class="btn btn-file">🖼️ BƯỚC 1: MỞ ẢNH GỐC</label>
+        <input type="file" id="input-img" accept="image/*">
 
-        <div class="action-bar">
-            <label for="file-input" class="btn-action">📂 Mở file Ảnh hoặc file màu .CUBE</label>
-            <input type="file" id="file-input" accept="image/*,.cube">
-        </div>
+        <label for="input-lut" class="btn btn-file" style="border-color: #ff9f43;">🎨 BƯỚC 2: ÁP FILE MÀU (.CUBE)</label>
+        <input type="file" id="input-lut" accept=".cube">
 
-        <div class="tabs-header">
-            <button class="tab-btn active" onclick="switchTab('luma', this)">☀️ LUMA</button>
-            <button class="tab-btn" onclick="switchTab('color', this)">🌡️ COLOR</button>
-            <button class="tab-btn" onclick="switchTab('presets', this)">🎨 LOOKS</button>
-        </div>
-
-        <div id="tab-luma" class="tab-content active">
-            <div class="control-group">
-                <div class="control-label"><span>Độ sáng (Brightness)</span><span id="val-brightness">1.00</span></div>
-                <input type="range" id="slider-brightness" class="slider" min="0.5" max="1.5" step="0.02" value="1">
-            </div>
-            <div class="control-group">
-                <div class="control-label"><span>Độ tương phản (Contrast)</span><span id="val-contrast">1.00</span></div>
-                <input type="range" id="slider-contrast" class="slider" min="0.5" max="1.5" step="0.02" value="1">
-            </div>
-            <div class="control-group">
-                <div class="control-label"><span>Vùng sáng (Highlights)</span><span id="val-highlights">0.00</span></div>
-                <input type="range" id="slider-highlights" class="slider" min="-0.5" max="0.5" step="0.02" value="0">
-            </div>
-            <div class="control-group">
-                <div class="control-label"><span>Vùng tối (Shadows)</span><span id="val-shadows">0.00</span></div>
-                <input type="range" id="slider-shadows" class="slider" min="-0.5" max="0.5" step="0.02" value="0">
-            </div>
-        </div>
-
-        <div id="tab-color" class="tab-content">
-            <div class="control-group">
-                <div class="control-label"><span>Độ bão hòa (Saturation)</span><span id="val-saturation">1.00</span></div>
-                <input type="range" id="slider-saturation" class="slider" min="0.0" max="2.0" step="0.02" value="1">
-            </div>
-            <div class="control-group">
-                <div class="control-label"><span>Nhiệt độ màu (Temperature)</span><span id="val-temp">0.00</span></div>
-                <input type="range" id="slider-temp" class="slider" min="-0.3" max="0.3" step="0.02" value="0">
-            </div>
-            <div class="control-group">
-                <div class="control-label"><span>Sắc thái (Tint)</span><span id="val-tint">0.00</span></div>
-                <input type="range" id="slider-tint" class="slider" min="-0.2" max="0.2" step="0.02" value="0">
-            </div>
-            <div class="control-group">
-                <div class="control-label"><span>Bão hòa Lá cây (HSL Green)</span><span id="val-greenSat">1.00</span></div>
-                <input type="range" id="slider-greenSat" class="slider" min="0.0" max="2.5" step="0.05" value="1">
-            </div>
-        </div>
-
-        <div id="tab-presets" class="tab-content">
-            <div class="select-group">
-                <label for="select-colorspace">Hệ màu gốc (Input Profile)</label>
-                <select id="select-colorspace" onchange="draw()">
-                    <option value="rec709">Standard (Rec.709)</option>
-                    <option value="bmdlog">Blackmagic Film LOG</option>
-                </select>
-            </div>
-            <div class="section-title">Built-in Premium Looks</div>
-            <div class="presets-grid">
-                <button class="btn-preset active" onclick="applyPreset('default', this)">Gốc</button>
-                <button class="btn-preset" onclick="applyPreset('cinematic', this)">Teal/Orange</button>
-                <button class="btn-preset" onclick="applyPreset('vintage', this)">Classic</button>
-                <button class="btn-preset" onclick="applyPreset('bw', this)">B&W Noir</button>
-            </div>
-        </div>
-
-        <div class="btn-container">
-            <button class="btn-main btn-reset" onclick="resetSliders()">Đặt lại</button>
-            <button class="btn-main btn-photo" onclick="exportToImage()">📸 TẢI ẢNH (.JPG)</button>
-        </div>
+        <button class="btn btn-save" onclick="saveImg()">💾 BƯỚC 3: TẢI ẢNH ĐÃ ÁP LUT</button>
     </div>
-        <script>
+
+    <script>
         const canvas = document.getElementById('preview-canvas');
         const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
-        const histCanvas = document.getElementById('histogram-canvas');
-        const histCtx = histCanvas.getContext('2d');
-        const fileInput = document.getElementById('file-input');
-
+        
         let originalImage = new Image();
         let glTexture = null, lutTexture = null, glProgram = null;
-        let hasLut = 0; 
-        let isWebGLInitialized = false; // Cờ kiểm tra trạng thái khởi tạo
-        const sliderIds = ['brightness', 'contrast', 'saturation', 'highlights', 'shadows', 'temp', 'tint', 'greenSat'];
+        let hasLut = 0, isReady = false;
 
-        if (!gl) { alert("Thiết bị không hỗ trợ WebGL2!"); }
+        if (!gl) alert("Thiết bị không hỗ trợ WebGL2!");
 
         const vsSource = `#version 300 es
             in vec2 position; out vec2 v_texCoord;
@@ -178,104 +54,43 @@
 
         const fsSource = `#version 300 es
             precision highp float; precision highp sampler3D;
-            in vec2 v_texCoord; uniform sampler2D u_image; uniform sampler3D u_lutTexture;
-            uniform float u_brightness; uniform float u_contrast; uniform float u_saturation;
-            uniform float u_highlights; uniform float u_shadows; uniform float u_temp;
-            uniform float u_tint; uniform float u_greenSat; uniform int u_isLog; uniform int u_hasLut;
+            in vec2 v_texCoord; uniform sampler2D u_image; uniform sampler3D u_lutTexture; uniform int u_hasLut;
             out vec4 outColor;
             void main() {
-                vec4 color = texture(u_image, v_texCoord); vec3 rgb = color.rgb;
+                vec4 color = texture(u_image, v_texCoord);
+                vec3 rgb = color.rgb;
                 if (u_hasLut == 1) { rgb = texture(u_lutTexture, rgb).rgb; }
-                if (u_isLog == 1) { rgb = pow(max(vec3(0.0), rgb), vec3(1.65)) * 1.12; }
-                rgb *= u_brightness; rgb = (rgb - 0.5) * u_contrast + 0.5;
-                float luma = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
-                float hiFactor = clamp((luma - 0.55) * 2.2, 0.0, 1.0);
-                float shFactor = clamp((0.45 - luma) * 2.2, 0.0, 1.0);
-                rgb += vec3(u_highlights * hiFactor + u_shadows * shFactor);
-                rgb.r += u_temp * 0.12; rgb.b -= u_temp * 0.12;
-                rgb.g -= u_tint * 0.10; rgb.r += u_tint * 0.05; rgb.b += u_tint * 0.05;
-                if (rgb.g > rgb.r * 1.02 && rgb.g > rgb.b * 1.02) {
-                    float greenDominance = rgb.g - max(rgb.r, rgb.b);
-                    rgb.g = rgb.g * u_greenSat + (1.0 - u_greenSat) * luma * greenDominance;
-                    rgb.r *= (1.0 + (u_greenSat - 1.0) * 0.08);
-                }
-                float finalLuma = 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
-                rgb = finalLuma + (rgb - finalLuma) * u_saturation;
                 outColor = vec4(clamp(rgb, 0.0, 1.0), color.a);
             }
         `;
 
-        function createShader(gl, type, source) {
-            const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader);
-            return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
-        }
-
-        // Chỉ khởi tạo WebGL khi ĐÃ CÓ ẢNH thực tế để tránh Feedback Loop lỗi GPU
-        function lazyInitWebGL() {
-            if (isWebGLInitialized) return true;
+        function initWebGL() {
+            canvas.width = 1; canvas.height = 1;
+            const vs = gl.createShader(gl.VERTEX_SHADER); gl.shaderSource(vs, vsSource); gl.compileShader(vs);
+            const fs = gl.createShader(gl.FRAGMENT_SHADER); gl.shaderSource(fs, fsSource); gl.compileShader(fs);
             
-            const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
-            const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-            if (!vs || !fs) return false;
-
-            glProgram = gl.createProgram(); 
-            gl.attachShader(glProgram, vs); gl.attachShader(glProgram, fs); gl.linkProgram(glProgram);
+            glProgram = gl.createProgram(); gl.attachShader(glProgram, vs); gl.attachShader(glProgram, fs); gl.linkProgram(glProgram);
             
-            const positionBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
-            const positionLoc = gl.getAttribLocation(glProgram, "position");
-            gl.enableVertexAttribArray(positionLoc); gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+            const pos = gl.getAttribLocation(glProgram, "position");
+            gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
 
             glTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, glTexture);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-            isWebGLInitialized = true;
-            return true;
-        }
-
-        function loadCubeLUT(file) {
-            if (!isWebGLInitialized) { alert("Vui lòng mở một tấm ảnh trước khi nạp file .CUBE!"); return; }
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const lines = e.target.result.split('\n');
-                let size = 0, lutData = [];
-                for (let i = 0; i < lines.length; i++) {
-                    let line = lines[i].trim();
-                    if (line.startsWith('LUT_3D_SIZE')) { size = parseInt(line.split(/\s+/)[1]); continue; }
-                    if (line === '' || line.startsWith('#') || line.startsWith('TITLE')) continue;
-                    let parts = line.split(/\s+/);
-                    if (parts.length === 3) {
-                        lutData.push(Math.floor(parseFloat(parts[0])*255), Math.floor(parseFloat(parts[1])*255), Math.floor(parseFloat(parts[2])*255), 255);
-                    }
-                }
-                if (size > 0 && lutData.length / 4 === size * size * size) {
-                    uploadLutToGPU(size, new Uint8Array(lutData)); hasLut = 1; draw();
-                } else { alert("File .cube lỗi định dạng!"); }
-            };
-            reader.readAsText(file);
-        }
-
-        function uploadLutToGPU(size, dataArray) {
-            if (lutTexture) gl.deleteTexture(lutTexture);
-            lutTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_3D, lutTexture);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, size, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, dataArray);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
+            isReady = true;
         }
 
         function draw() {
-            if (!originalImage.src || !lazyInitWebGL()) return;
-
-            canvas.width = originalImage.width > 1000 ? 1000 : originalImage.width;
+            if (!originalImage.src || !isReady) return;
+            canvas.width = originalImage.width > 1200 ? 1200 : originalImage.width;
             canvas.height = (canvas.width * originalImage.height) / originalImage.width;
-            gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(glProgram);
             
+            gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(glProgram);
             gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, glTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, originalImage);
             gl.uniform1i(gl.getUniformLocation(glProgram, "u_image"), 0);
@@ -285,93 +100,58 @@
                 gl.uniform1i(gl.getUniformLocation(glProgram, "u_lutTexture"), 1);
             }
             gl.uniform1i(gl.getUniformLocation(glProgram, "u_hasLut"), hasLut);
-
-            sliderIds.forEach(id => {
-                let val = parseFloat(document.getElementById(`slider-${id}`).value);
-                gl.uniform1f(gl.getUniformLocation(glProgram, `u_${id}`), val);
-            });
-            
-            const isLog = document.getElementById('select-colorspace').value === 'bmdlog' ? 1 : 0;
-            gl.uniform1i(gl.getUniformLocation(glProgram, "u_isLog"), isLog);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
-            setTimeout(drawHistogram, 30);
         }
 
-        function drawHistogram() {
-            histCanvas.width = histCanvas.parentElement.clientWidth; histCanvas.height = 50;
-            if(!isWebGLInitialized || canvas.width === 0 || canvas.height === 0) return;
-            
-            const pixels = new Uint8Array(canvas.width * canvas.height * 4);
-            gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-            let rHist = new Array(256).fill(0), gHist = new Array(256).fill(0), bHist = new Array(256).fill(0);
-            for (let i = 0; i < pixels.length; i += 128) { rHist[pixels[i]]++; gHist[pixels[i+1]]++; bHist[pixels[i+2]]++; }
-            let maxVal = Math.max(...rHist, ...gHist, ...bHist);
-            
-            histCtx.clearRect(0, 0, histCanvas.width, histCanvas.height); histCtx.globalCompositeOperation = 'screen';
-            function drawChannel(histArray, color) {
-                histCtx.fillStyle = color; const binWidth = histCanvas.width / 256;
-                for (let i = 0; i < 256; i++) {
-                    let h = (histArray[i] / (maxVal || 1)) * histCanvas.height;
-                    histCtx.fillRect(i * binWidth, histCanvas.height - h, binWidth, h);
-                }
-            }
-            drawChannel(rHist, 'rgba(255, 0, 85, 0.4)'); drawChannel(gHist, 'rgba(0, 255, 170, 0.4)'); drawChannel(bHist, 'rgba(0, 136, 255, 0.4)');
-        }
-
-        function processFile(file) {
-            if (!file) return;
-            if (file.name.endsWith('.cube')) { loadCubeLUT(file); } 
-            else {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    originalImage = new Image();
-                    originalImage.onload = () => { draw(); };
-                    originalImage.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        sliderIds.forEach(id => {
-            document.getElementById(`slider-${id}`).addEventListener('input', (e) => {
-                document.getElementById(`val-${id}`).innerText = parseFloat(e.target.value).toFixed(2);
-                if (isWebGLInitialized) draw();
-            });
+        document.getElementById('input-img').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            const r = new FileReader();
+            r.onload = (ev) => {
+                originalImage = new Image();
+                originalImage.onload = () => { hasLut = 0; draw(); };
+                originalImage.src = ev.target.result;
+            };
+            r.readAsDataURL(file);
         });
 
-        fileInput.addEventListener('change', (e) => processFile(e.target.files[0]));
-        function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            btnElement.classList.add('active'); document.getElementById(`tab-${tabId}`).classList.add('active');
-        }
-
-        function applyPreset(type, btnElement) {
-            document.querySelectorAll('.btn-preset').forEach(b => b.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active'); hasLut = 0;
-            const settings = {
-                default:   { brightness: 1.0, contrast: 1.0, saturation: 1.0, highlights: 0.0, shadows: 0.0, temp: 0.0, tint: 0.0, greenSat: 1.0 },
-                cinematic: { brightness: 0.94, contrast: 1.15, saturation: 1.15, highlights: -0.10, shadows: 0.04, temp: 0.10, tint: -0.04, greenSat: 0.70 },
-                vintage:   { brightness: 1.00, contrast: 0.90, saturation: 0.80, highlights: -0.10, shadows: 0.10, temp: 0.12, tint: 0.02, greenSat: 1.30 },
-                bw:        { brightness: 1.0, contrast: 1.20, saturation: 0.0, highlights: 0.0, shadows: -0.04, temp: 0.0, tint: 0.0, greenSat: 0.0 }
+        document.getElementById('input-lut').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file || !originalImage.src) { alert("Hãy mở ảnh trước khi chọn file LUT!"); return; }
+            const r = new FileReader();
+            r.onload = (ev) => {
+                const lines = ev.target.result.split('\n');
+                let size = 0, lutData = [];
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i].trim();
+                    if (line.startsWith('LUT_3D_SIZE')) { size = parseInt(line.split(/\s+/)[1]); continue; }
+                    if (line === '' || line.startsWith('#') || line.startsWith('TITLE')) continue;
+                    let p = line.split(/\s+/);
+                    if (p.length === 3) {
+                        lutData.push(Math.floor(parseFloat(p[0])*255), Math.floor(parseFloat(p[1])*255), Math.floor(parseFloat(p[2])*255), 255);
+                    }
+                }
+                if (size > 0 && lutData.length / 4 === size * size * size) {
+                    if (lutTexture) gl.deleteTexture(lutTexture);
+                    lutTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_3D, lutTexture);
+                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                    gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, size, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(lutData));
+                    hasLut = 1; draw();
+                } else { alert("File .cube lỗi hoặc không đúng định dạng!"); }
             };
-            const set = settings[type] || settings.default;
-            sliderIds.forEach(id => {
-                document.getElementById(`slider-${id}`).value = set[id];
-                document.getElementById(`val-${id}`).innerText = set[id].toFixed(2);
-            });
-            if (isWebGLInitialized) draw();
+            r.readAsText(file);
+        });
+
+        function saveImg() {
+            if (!originalImage.src || canvas.width <= 1) return;
+            const a = document.createElement('a'); a.download = 'Sopcare_LUT.jpg';
+            a.href = canvas.toDataURL('image/jpeg', 0.95);
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
-        function resetSliders() { applyPreset('default', document.querySelectorAll('.btn-preset')[0]); }
-        function exportToImage() {
-            if (!originalImage.src || !isWebGLInitialized) return;
-            const link = document.createElement('a'); link.download = 'Sopcare_WebGL.jpg';
-            link.href = canvas.toDataURL('image/jpeg', 0.90);
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-        }
-        window.onload = () => { /* Chờ người dùng chọn file mới kích hoạt WebGL */ };
+        window.onload = initWebGL;
     </script>
 </body>
 </html>
