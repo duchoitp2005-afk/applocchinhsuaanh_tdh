@@ -163,6 +163,7 @@
         let originalImage = new Image();
         let glTexture = null, lutTexture = null, glProgram = null;
         let hasLut = 0; 
+        let isWebGLInitialized = false; // Cờ kiểm tra trạng thái khởi tạo
         const sliderIds = ['brightness', 'contrast', 'saturation', 'highlights', 'shadows', 'temp', 'tint', 'greenSat'];
 
         if (!gl) { alert("Thiết bị không hỗ trợ WebGL2!"); }
@@ -209,10 +210,16 @@
             return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
         }
 
-        function initWebGL() {
+        // Chỉ khởi tạo WebGL khi ĐÃ CÓ ẢNH thực tế để tránh Feedback Loop lỗi GPU
+        function lazyInitWebGL() {
+            if (isWebGLInitialized) return true;
+            
             const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
             const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-            glProgram = gl.createProgram(); gl.attachShader(glProgram, vs); gl.attachShader(glProgram, fs); gl.linkProgram(glProgram);
+            if (!vs || !fs) return false;
+
+            glProgram = gl.createProgram(); 
+            gl.attachShader(glProgram, vs); gl.attachShader(glProgram, fs); gl.linkProgram(glProgram);
             
             const positionBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
@@ -224,9 +231,13 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+            isWebGLInitialized = true;
+            return true;
         }
 
         function loadCubeLUT(file) {
+            if (!isWebGLInitialized) { alert("Vui lòng mở một tấm ảnh trước khi nạp file .CUBE!"); return; }
             const reader = new FileReader();
             reader.onload = function(e) {
                 const lines = e.target.result.split('\n');
@@ -259,7 +270,8 @@
         }
 
         function draw() {
-            if (!originalImage.src || !glProgram) return;
+            if (!originalImage.src || !lazyInitWebGL()) return;
+
             canvas.width = originalImage.width > 1000 ? 1000 : originalImage.width;
             canvas.height = (canvas.width * originalImage.height) / originalImage.width;
             gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(glProgram);
@@ -282,12 +294,13 @@
             const isLog = document.getElementById('select-colorspace').value === 'bmdlog' ? 1 : 0;
             gl.uniform1i(gl.getUniformLocation(glProgram, "u_isLog"), isLog);
             gl.drawArrays(gl.TRIANGLES, 0, 6);
-            setTimeout(drawHistogram, 20);
+            setTimeout(drawHistogram, 30);
         }
 
         function drawHistogram() {
             histCanvas.width = histCanvas.parentElement.clientWidth; histCanvas.height = 50;
-            if(canvas.width === 0 || canvas.height === 0) return;
+            if(!isWebGLInitialized || canvas.width === 0 || canvas.height === 0) return;
+            
             const pixels = new Uint8Array(canvas.width * canvas.height * 4);
             gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
@@ -323,7 +336,7 @@
         sliderIds.forEach(id => {
             document.getElementById(`slider-${id}`).addEventListener('input', (e) => {
                 document.getElementById(`val-${id}`).innerText = parseFloat(e.target.value).toFixed(2);
-                draw();
+                if (isWebGLInitialized) draw();
             });
         });
 
@@ -348,17 +361,17 @@
                 document.getElementById(`slider-${id}`).value = set[id];
                 document.getElementById(`val-${id}`).innerText = set[id].toFixed(2);
             });
-            draw();
+            if (isWebGLInitialized) draw();
         }
 
         function resetSliders() { applyPreset('default', document.querySelectorAll('.btn-preset')[0]); }
         function exportToImage() {
-            if (!originalImage.src) return;
+            if (!originalImage.src || !isWebGLInitialized) return;
             const link = document.createElement('a'); link.download = 'Sopcare_WebGL.jpg';
             link.href = canvas.toDataURL('image/jpeg', 0.90);
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
-        window.onload = () => { initWebGL(); };
+        window.onload = () => { /* Chờ người dùng chọn file mới kích hoạt WebGL */ };
     </script>
 </body>
 </html>
