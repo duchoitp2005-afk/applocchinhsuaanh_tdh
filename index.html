@@ -3,351 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Sopcare Cam">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#0b0b0b">
-    
-    <title>Sopcare - AI Slider Cam Studio v37</title>
-    
-    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Sopcare%20Pro%20Cam%22%2C%22short_name%22%3A%22Sopcare%20Cam%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230b0b0b%22%2C%22theme_color%22%3A%22%230b0b0b%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fcdn-icons-png.flaticon.com%2F512%2F8214%2F8214433.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%22%7D%5D%7D">
-
+    <meta name="theme-color" content="#121212">
+    <title>Sopcare - AI Slider Cam Studio</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #0b0b0b; font-family: 'Segoe UI', Arial, sans-serif; user-select: none; }
-        .camera-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-        video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease-out; }
-        
-        .status-header { position: absolute; top: 12px; width: 100%; text-align: center; color: #fff; font-weight: 900; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; z-index: 10; text-shadow: 0 0 10px #00ffcc; }
-        .sub-header { position: absolute; top: 34px; width: 100%; text-align: center; color: #ffeb3b; font-weight: bold; font-size: 9px; text-transform: uppercase; z-index: 10; text-shadow: 0 0 5px #ffeb3b; }
-        .flip-btn { position: absolute; top: 20px; right: 20px; width: 42px; height: 42px; background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; z-index: 12; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; font-size: 18px; }
-        
-        .pro-settings-panel { display: none; position: absolute; top: 65px; left: 5%; width: 90%; background: rgba(15, 15, 20, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(0, 255, 204, 0.2); border-radius: 12px; padding: 10px; z-index: 15; flex-direction: column; gap: 8px; }
-        .pro-settings-panel.active { display: flex; }
-        .pro-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .pro-label { color: #00ffcc; font-size: 9px; font-weight: 900; text-transform: uppercase; width: 65px; font-family: monospace; }
-        .pro-slider { -webkit-appearance: none; flex: 1; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; outline: none; }
-        .pro-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #00ffcc; cursor: pointer; }
-        .pro-val { color: #fff; font-size: 10px; font-weight: bold; width: 40px; text-align: right; font-family: monospace; }
-        
-        .wb-select { background: #222; color: #fff; border: 1px solid #444; font-size: 10px; padding: 2px 6px; border-radius: 4px; outline: none; font-weight: bold; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .zoom-control-box { position: absolute; bottom: 170px; width: 85%; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 10px; z-index: 12; border: 1px solid rgba(255,255,255,0.1); }
-        .zoom-label { color: #00ffcc; font-size: 10px; font-weight: bold; min-width: 60px; text-align: center; font-family: monospace; }
-        .zoom-slider { -webkit-appearance: none; flex: 1; height: 4px; background: #333; border-radius: 2px; outline: none; }
-        .zoom-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #00ffcc; cursor: pointer; }
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
 
-        .overlay-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; z-index: 3; }
-        .active { display: block; }
-        .line { position: absolute; background-color: rgba(0, 255, 204, 0.3); box-shadow: 0 0 2px rgba(0, 255, 204, 0.3); }
-        .spiral-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .grid-v1, .grid-v2 { width: 1.5px; height: 100%; top: 0; } .grid-v1 { left: 33.33%; } .grid-v2 { left: 66.66%; }
-        .grid-h1, .grid-h2 { height: 1.5px; width: 100%; left: 0; } .grid-h1 { top: 33.33%; } .grid-h2 { top: 66.66%; }
+        header {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            padding: 10px 0 20px 0;
+        }
 
-        .controls-panel { position: absolute; bottom: 0; width: 100%; height: 155px; background: rgba(10, 10, 10, 0.94); display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding-bottom: 12px; z-index: 10; border-top: 1px solid #222; }
-        .mode-selector { width: 100%; display: flex; justify-content: flex-start; gap: 8px; overflow-x: auto; padding: 6px 15px; scrollbar-width: none; }
-        .mode-selector::-webkit-scrollbar { display: none; }
-        .mode-btn { background: #222; border: 1px solid #333; color: #aaa; padding: 6px 12px; border-radius: 20px; font-size: 11px; cursor: pointer; text-transform: uppercase; white-space: nowrap; font-weight: bold; }
-        .mode-btn.selected { background: #00ffcc; color: #000; font-weight: 900; border-color: #00ffcc; }
-        .mode-btn.pro-active-tab { background: #ff00ff; color: #fff; border-color: #ff00ff; }
+        header h1 {
+            font-size: 1.4rem;
+            color: #00fff0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 255, 240, 0.3);
+        }
 
-        .action-area { width: 100%; display: flex; justify-content: center; align-items: center; gap: 30px; padding: 0 15px; }
-        .shutter-container { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-        .shutter-label { color: #888; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .shutter-btn { width: 52px; height: 52px; border-radius: 50%; background-color: #fff; border: 4px solid #222; cursor: pointer; box-shadow: 0 0 0 2px #fff; }
-        .shutter-btn.night-active { background: linear-gradient(45deg, #00ffcc, #ff00ff); border: 4px solid #111; box-shadow: 0 0 12px #ff00ff; }
-        .upload-btn { width: 44px; height: 44px; background: #1a1a1a; border: 1px solid #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #00ffcc; font-size: 16px; cursor: pointer; }
-        
-        .preview-container { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 20; flex-direction: column; justify-content: space-between; align-items: center; padding: 5px 0; overflow: hidden; }
-        .preview-box { width: 100%; flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; background: #000; padding: 6px; }
-        .image-wrapper { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; border-radius: 8px; overflow: hidden; }
-        #previewImage { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; transition: transform 0.1s ease-out; box-shadow: 0 0 20px rgba(0,0,0,0.9); }
-        
-        .advanced-mixer-panel { width: 94%; background: #111514; border: 1px solid #1d2a26; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 2px; }
-        .mixer-header-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid #1a2421; }
-        .mixer-title { color: #00ffcc; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
-        .hud-stats { color: #ff00ff; font-family: monospace; font-size: 10px; font-weight: bold; text-align: right; }
-        
-        .ai-control-box { display: flex; align-items: center; justify-content: space-between; background: rgba(0, 255, 204, 0.06); padding: 6px 8px; border-radius: 8px; border: 1px dashed rgba(0, 255, 204, 0.3); gap: 10px; }
-        .ai-btn { background: linear-gradient(45deg, #00ffcc, #ff00ff); border: none; color: #000; font-size: 9px; font-weight: 900; padding: 6px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 8px rgba(0,255,204,0.4); }
-        .ai-intensity-label { color: #ff00ff; font-size: 9px; font-weight: bold; text-transform: uppercase; font-family: monospace; white-space: nowrap; }
+        header p {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
 
-        .slider-group-box { display: flex; flex-direction: column; gap: 5px; width: 100%; }
-        .studio-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .studio-label { color: #aaa; font-size: 9px; font-weight: bold; text-transform: uppercase; width: 75px; font-family: monospace; }
-        .studio-slider { -webkit-appearance: none; flex: 1; height: 4px; background: #1e2624; border-radius: 2px; outline: none; }
-        .studio-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #00ffcc; cursor: pointer; box-shadow: 0 0 5px #00ffcc; }
-        .studio-val { color: #fff; font-size: 9px; font-weight: bold; width: 35px; text-align: right; font-family: monospace; }
+        .studio-container {
+            width: 100%;
+            max-width: 500px;
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2a2a;
+        }
 
-        .category-tab-bar { width: 100%; display: flex; gap: 4px; padding: 2px 14px; background: #101413; overflow-x: auto; scrollbar-width: none; }
-        .category-tab-bar::-webkit-scrollbar { display: none; }
-        .category-tab-btn { background: #1a2220; color: #888; border: 1px solid #2a3532; padding: 4px 10px; border-radius: 8px; font-size: 9px; font-weight: bold; cursor: pointer; white-space: nowrap; text-transform: uppercase; }
-        .category-tab-btn.active { background: #00ffcc; color: #000; border-color: #00ffcc; font-weight: 900; }
-        
-        .filter-bar { width: 100%; display: flex; gap: 8px; overflow-x: auto; padding: 4px 14px 6px 14px; background: #101413; border-bottom: 1px solid #1a2220; scrollbar-width: none; }
-        .filter-bar::-webkit-scrollbar { display: none; }
-        .filter-item { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 58px; cursor: pointer; }
-        .filter-thumb { width: 36px; height: 36px; border-radius: 6px; border: 2px solid #333; background: #222; }
-        .filter-item.active .filter-thumb { border-color: #00ffcc; box-shadow: 0 0 6px rgba(0,255,204,0.4); }
-        .filter-name { color: #777; font-size: 8px; text-align: center; white-space: nowrap; font-weight: bold; width: 100%; overflow: hidden; text-overflow: ellipsis; }
-        .filter-item.active .filter-name { color: #fff; }
+        /* Khung hiển thị ảnh */
+        .preview-box {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-        .bottom-actions { width: 100%; display: flex; justify-content: center; gap: 12px; padding: 6px 15px; background: #0a0d0c; }
-        .action-btn { padding: 8px 20px; border-radius: 20px; font-weight: 800; font-size: 11px; border: none; cursor: pointer; text-transform: uppercase; }
-        .btn-cancel { background: #1a2220; color: #888; border: 1px solid #2a3532; }
-        .btn-download { background: linear-gradient(90deg, #00ffcc, #ff00ff); color: #000; }
-        
-        .loading-toast { display: none; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); color: #00ffcc; padding: 12px 25px; border-radius: 25px; font-weight: bold; font-size: 11px; z-index: 40; border: 1px solid #00ffcc; text-align: center; }
-        canvas { display: none; }
+        .preview-box canvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .upload-label {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 255, 240, 0.2);
+            border: 1px solid #00fff0;
+            color: #00fff0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+
+        .upload-label:active {
+            background: #00fff0;
+            color: #000;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* Khung điều khiển Sliders */
+        .control-group {
+            margin-bottom: 18px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+
+        .control-label span:last-child {
+            color: #00fff0;
+            font-family: monospace;
+        }
+
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00fff0;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 255, 240, 0.5);
+        }
+
+        /* Nút chức năng */
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset {
+            background: #2a2a2a;
+            color: #aaa;
+            border: 1px solid #333;
+        }
+
+        .btn-reset:active {
+            background: #333;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #00fff0, #00b8ff);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 255, 240, 0.3);
+        }
+
+        .btn-export:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
-    <div class="camera-container" id="cameraView">
-        <video id="video" autoplay playsinline></video>
-        <div class="status-header">SOPCARE AI SLIDER STUDIO</div>
-        <div class="sub-header">MÔ HÌNH PHÂN TÍCH SẮC ĐỘ THÔNG MINH</div>
-        <div class="flip-btn" onclick="toggleCamera()">🔄</div>
 
-        <div class="pro-settings-panel" id="proPanel">
-            <div class="pro-row">
-                <span class="pro-label">Bù Sáng EV</span>
-                <input type="range" min="-20" max="20" value="-3" class="pro-slider" id="proEV" oninput="applyProControls()">
-                <span class="pro-val" id="valEV">-0.3</span>
-            </div>
-            <div class="pro-row">
-                <span class="pro-label">Tương Phản</span>
-                <input type="range" min="50" max="150" value="112" class="pro-slider" id="proContrast" oninput="applyProControls()">
-                <span class="pro-val" id="valContrast">112%</span>
-            </div>
-            <div class="pro-row">
-                <span class="pro-label">Độ Bão Hòa</span>
-                <input type="range" min="50" max="160" value="108" class="pro-slider" id="proSat" oninput="applyProControls()">
-                <span class="pro-val" id="valSat">108%</span>
-            </div>
-            <div class="pro-row">
-                <span class="pro-label">Cân Bằng WB</span>
-                <select id="proWB" class="wb-select" onchange="applyProControls()">
-                    <option value="none">Auto WB</option>
-                    <option value="daylight">Ấm Áp Cổ Kính (☀️)</option>
-                    <option value="tungsten">Chụp Đêm Đô Thị (💡)</option>
-                </select>
-                <span class="pro-val" style="width:40px;"></span>
-            </div>
-        </div>
+    <header>
+        <h1>Sopcare</h1>
+        <p>AI Slider Cam Studio • LUT Generator</p>
+    </header>
 
-        <div class="zoom-control-box">
-            <span class="zoom-label" id="zoomValue">Zoom: 1.0x</span>
-            <input type="range" min="10" max="40" value="10" class="zoom-slider" id="cameraZoomSlider" oninput="applyCameraZoom(this.value)">
-        </div>
-
-        <div id="layout-spiral" class="overlay-layer active"><svg class="spiral-svg" viewBox="0 0 1000 1000"><path d="M500,500 m -300, 0 a 300,300 0 1,0 600,0 a 300,300 0 1,0 -600,0" fill="none" stroke="rgba(0,255,204,0.25)" stroke-width="2"/></svg></div>
-        <div id="layout-grid" class="overlay-layer"><div class="line grid-v1"></div><div class="line grid-v2"></div><div class="line grid-h1"></div><div class="line grid-h2"></div></div>
-
-        <div class="controls-panel">
-            <div class="mode-selector">
-                <button class="mode-btn" onclick="changeLayout('spiral', this)">Tâm Điểm</button>
-                <button class="mode-btn selected" onclick="changeLayout('grid', this)">Lưới 1/3</button>
-                <button class="mode-btn pro-active-tab" id="proToggleBtn" onclick="toggleProMode()">Chế Độ (PRO)</button>
-            </div>
-            <div class="action-area">
-                <div class="shutter-container">
-                    <label for="fileUpload" class="upload-btn">📁</label>
-                    <input type="file" id="fileUpload" accept="image/*" style="display: none;" onchange="uploadLocalImage(event)">
-                    <span class="shutter-label">Nạp Ảnh</span>
-                </div>
-                
-                <div class="shutter-container"><button class="shutter-btn night-active" onclick="takePhoto(false)"></button><span class="shutter-label" style="color: #ff00ff;">Chụp Tệp KP</span></div>
-                <div class="shutter-container"><button class="shutter-btn" style="background: #00ffcc;" onclick="takePhoto(true)"></button><span class="shutter-label">Gốc Màu</span></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="preview-container" id="previewView">
-        <div class="status-header" style="position: relative; top: 0; padding-top: 4px; color: #ff00ff;">SOPCARE STUDIO WORKSPACE</div>
-        
+    <div class="studio-container">
         <div class="preview-box">
-            <div class="image-wrapper" id="previewImageWrapper">
-                <img id="previewImage" alt="Preview">
-            </div>
+            <canvas id="preview-canvas"></canvas>
+            <label for="file-input" class="upload-label">Đổi ảnh mẫu</label>
+            <input type="file" id="file-input" accept="image/*">
         </div>
 
-        <div class="zoom-control-box" style="position: relative; bottom: 0; width: 94%; background: #131817; border-color: #1d2a26; margin-bottom: 4px; padding: 4px 12px;">
-            <span class="zoom-label" id="previewZoomValue" style="color: #ff00ff; min-width: 90px;">Cắt Bố Cục: 1.0x</span>
-            <input type="range" min="10" max="40" value="10" class="zoom-slider" id="previewZoomSlider" oninput="applyPreviewZoom(this.value)" style="background: #1c2422;">
-        </div>
-        
-        <div class="advanced-mixer-panel">
-            <div class="mixer-header-row">
-                <span class="mixer-title">🎛️ Bảng Tinh Chỉnh & Trộn Màu AI</span>
-                <span class="hud-stats" id="hudMixStats">Màu Gốc</span>
+        <div class="control-group">
+            <div class="control-label">
+                <span>Độ sáng (Brightness)</span>
+                <span id="val-brightness">1.00</span>
             </div>
-
-            <div class="ai-control-box">
-                <button class="ai-btn" onclick="triggerAIAnalysis()">✨ AI Tự Động Trộn MÀU</button>
-                <span class="ai-intensity-label">Can thiệp AI:</span>
-                <input type="range" min="0" max="100" value="100" class="studio-slider" id="sldAIEffect" oninput="applyManualSliders()" style="background: #2a1f2d;">
-                <span class="studio-val" id="valAIEffect" style="color: #ff00ff;">100%</span>
-            </div>
-            
-            <div class="slider-group-box">
-                <div class="studio-row">
-                    <span class="studio-label">Tương phản</span>
-                    <input type="range" min="40" max="180" value="100" class="studio-slider" id="sldContrast" oninput="applyManualSliders()">
-                    <span class="studio-val" id="valSldContrast">100%</span>
-                </div>
-                <div class="studio-row">
-                    <span class="studio-label">Độ bão hòa</span>
-                    <input type="range" min="0" max="200" value="100" class="studio-slider" id="sldSaturate" oninput="applyManualSliders()">
-                    <span class="studio-val" id="valSldSaturate">100%</span>
-                </div>
-                <div class="studio-row">
-                    <span class="studio-label">Độ sáng</span>
-                    <input type="range" min="50" max="150" value="100" class="studio-slider" id="sldBrightness" oninput="applyManualSliders()">
-                    <span class="studio-val" id="valSldBrightness">100%</span>
-                </div>
-                <div class="studio-row">
-                    <span class="studio-label">Hoài cổ (Sepia)</span>
-                    <input type="range" min="0" max="100" value="0" class="studio-slider" id="sldSepia" oninput="applyManualSliders()">
-                    <span class="studio-val" id="valSldSepia">0%</span>
-                </div>
-                <div class="studio-row">
-                    <span class="studio-label">Trượt Hue màu</span>
-                    <input type="range" min="-180" max="180" value="0" class="studio-slider" id="sldHue" oninput="applyManualSliders()">
-                    <span class="studio-val" id="valSldHue">0°</span>
-                </div>
-            </div>
+            <input type="range" id="slider-brightness" class="slider" min="0.5" max="1.5" step="0.02" value="1">
         </div>
 
-        <div class="category-tab-bar">
-            <button class="category-tab-btn active" id="tab-all" onclick="changeCategory('all')">🌈 Tất Cả</button>
-            <button class="category-tab-btn" id="tab-retro" onclick="changeCategory('film-retro')">🎞️ Tệp 1</button>
-            <button class="category-tab-btn" id="tab-cyber" onclick="changeCategory('cyber-nature')">🌌 Tệp 2</button>
-            <button class="category-tab-btn" id="tab-horror" onclick="changeCategory('horror-cinematic')">💀 Tệp 3</button>
-            <button class="category-tab-btn" id="tab-sea" onclick="changeCategory('sea-ocean')">🌊 Tệp 4</button>
-            <button class="category-tab-btn" id="tab-portrait" onclick="changeCategory('portrait')">✨ Tệp 5</button>
+        <div class="control-group">
+            <div class="control-label">
+                <span>Độ tương phản (Contrast)</span>
+                <span id="val-contrast">1.00</span>
+            </div>
+            <input type="range" id="slider-contrast" class="slider" min="0.5" max="1.5" step="0.02" value="1">
         </div>
 
-        <div class="filter-bar" id="filterBar"></div>
-        <div class="bottom-actions"><button class="action-btn btn-cancel" onclick="cancelPreview()">Chụp Lại</button><button class="action-btn btn-download" onclick="downloadFinalImage()">Tải Ảnh</button></div>
+        <div class="control-group">
+            <div class="control-label">
+                <span>Độ bão hòa màu (Saturation)</span>
+                <span id="val-saturation">1.00</span>
+            </div>
+            <input type="range" id="slider-saturation" class="slider" min="0.0" max="2.0" step="0.04" value="1">
+        </div>
+
+        <div class="btn-container">
+            <button class="btn-reset" onclick="resetSliders()">Đặt lại</button>
+            <button class="btn-export" onclick="exportToCube()">Xuất file .CUBE</button>
+        </div>
     </div>
 
-    <div id="loadingToast" class="loading-toast">🚀 ĐANG PHÂN LẠI TỆP CHỦ ĐỀ MÀU...</div>
-    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('preview-canvas');
+        const ctx = canvas.getContext('2d');
+        const fileInput = document.getElementById('file-input');
 
-    <script> 
-        const video = document.getElementById('video'), canvas = document.getElementById('canvas'), cameraView = document.getElementById('cameraView'), previewView = document.getElementById('previewView'), previewImage = document.getElementById('previewImage'), filterBar = document.getElementById('filterBar'), loadingToast = document.getElementById('loadingToast'), cameraZoomSlider = document.getElementById('cameraZoomSlider'), zoomValue = document.getElementById('zoomValue'), previewZoomSlider = document.getElementById('previewZoomSlider'), previewZoomValue = document.getElementById('previewZoomValue');
-        const hudMixStats = document.getElementById('hudMixStats');
-        const sldContrast = document.getElementById('sldContrast'), sldSaturate = document.getElementById('sldSaturate'), sldBrightness = document.getElementById('sldBrightness'), sldSepia = document.getElementById('sldSepia'), sldHue = document.getElementById('sldHue');
-        const valSldContrast = document.getElementById('valSldContrast'), valSldSaturate = document.getElementById('valSldSaturate'), valSldBrightness = document.getElementById('valSldBrightness'), valSldSepia = document.getElementById('valSldSepia'), valSldHue = document.getElementById('valSldHue');
-        const sldAIEffect = document.getElementById('sldAIEffect'), valAIEffect = document.getElementById('valAIEffect');
-        const proPanel = document.getElementById('proPanel'), proToggleBtn = document.getElementById('proToggleBtn'), proEV = document.getElementById('proEV'), proContrast = document.getElementById('proContrast'), proSat = document.getElementById('proSat'), proWB = document.getElementById('proWB');
-        const valEV = document.getElementById('valEV'), valContrast = document.getElementById('valContrast'), valSat = document.getElementById('valSat');
-
-        let currentStream = null, useFacingMode = "environment", originalImageDataUrl = '', isProModeActive = true;
-        let selectedFilterId = 'normal', currentCategory = 'all';
-
-        let preAIValues = { con: 100, sat: 100, bri: 100, sep: 0, hue: 0 };
-        let targetAIValues = { con: 100, sat: 100, bri: 100, sep: 0, hue: 0 };
-        let isAIActivated = false;
-
-        const filtersConfig = [
-            { id: 'normal', name: 'Màu Gốc', category: 'all', filterCSS: 'none', rawValues: { con:100, sat:100, bri:100, sep:0, hue:0 } }
-        ];
-
-        for (let i = 1; i <= 37; i++) {
-            let cat = (i <= 10) ? 'film-retro' : (i <= 20) ? 'cyber-nature' : (i <= 30) ? 'horror-cinematic' : 'sea-ocean';
-            let valObj = (i <= 10) ? { con: 85+(i%3)*4, sat: 88+(i%2)*6, bri: 100+i, sep: 4+i, hue: i*2 } :
-                         (i <= 20) ? { con: 108+(i%3)*3, sat: 130+(i%4)*5, bri: 96-(i%2)*2, sep: 0, hue: 120+(i*5) } :
-                         (i <= 30) ? { con: 130+(i%3)*4, sat: 50+(i%3)*6, bri: 85-(i%2)*3, sep: 8+i-20, hue: 25+(i*2) } :
-                                     { con: 108+(i%2)*4, sat: 122+(i%3)*4, bri: 101-(i%2)*2, sep: 0, hue: -10-(i-30)*4 };
-            filtersConfig.push({ id: `tone-kp${i}`, name: `KP${i < 10 ? '0'+i : i}`, category: cat, filterCSS: `contrast(${valObj.con}%) saturate(${valObj.sat}%) brightness(${valObj.bri}%) sepia(${valObj.sep}%) hue-rotate(${valObj.hue}deg)`, rawValues: valObj });
+        // Khởi tạo ảnh mặc định (Ảnh phong cảnh giả lập để test màu ban đầu)
+        let originalImage = new Image();
+        
+        // Tạo ảnh màu gốc gradient nếu chưa upload ảnh mới
+        function createDefaultSample() {
+            canvas.width = 640;
+            canvas.height = 360;
+            // Tạo một hình ảnh mẫu đầy màu sắc để người dùng dễ nhìn thấy sự thay đổi của LUT
+            let grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#ff0055');
+            grad.addColorStop(0.5, '#00ffaa');
+            grad.addColorStop(1, '#0055ff');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Vẽ thêm vài chi tiết khối để test độ tương phản
+            ctx.fillStyle = "rgba(255,255,255,0.8)";
+            ctx.fillRect(100, 80, 150, 150);
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillRect(380, 120, 160, 150);
+            
+            originalImage.src = canvas.toDataURL();
         }
 
-        const portraitFilters = [
-            { id: 'p01', name: 'Nắng Mơ', category: 'portrait', filterCSS: 'contrast(95%) saturate(105%) brightness(105%) sepia(5%) hue-rotate(0deg)', rawValues: { con: 95, sat: 105, bri: 105, sep: 5, hue: 0 } },
-            { id: 'p02', name: 'Tuyết Xanh', category: 'portrait', filterCSS: 'contrast(100%) saturate(90%) brightness(110%) sepia(0%) hue-rotate(-10deg)', rawValues: { con: 100, sat: 90, bri: 110, sep: 0, hue: -10 } },
-            { id: 'p03', name: 'Rừng Xanh', category: 'portrait', filterCSS: 'contrast(105%) saturate(115%) brightness(95%) sepia(0%) hue-rotate(15deg)', rawValues: { con: 105, sat: 115, bri: 95, sep: 0, hue: 15 } },
-            { id: 'p04', name: 'Hạ Trong', category: 'portrait', filterCSS: 'contrast(90%) saturate(120%) brightness(105%) sepia(0%) hue-rotate(5deg)', rawValues: { con: 90, sat: 120, bri: 105, sep: 0, hue: 5 } },
-            { id: 'p05', name: 'Tĩnh Lặng', category: 'portrait', filterCSS: 'contrast(85%) saturate(80%) brightness(90%) sepia(10%) hue-rotate(-5deg)', rawValues: { con: 85, sat: 80, bri: 90, sep: 10, hue: -5 } },
-            { id: 'p06', name: 'Mưa Xanh', category: 'portrait', filterCSS: 'contrast(105%) saturate(95%) brightness(90%) sepia(5%) hue-rotate(10deg)', rawValues: { con: 105, sat: 95, bri: 90, sep: 5, hue: 10 } },
-            { id: 'p07', name: 'Mây Mờ', category: 'portrait', filterCSS: 'contrast(90%) saturate(90%) brightness(110%) sepia(0%) hue-rotate(0deg)', rawValues: { con: 90, sat: 90, bri: 110, sep: 0, hue: 0 } },
-            { id: 'p08', name: 'Đồng Cỏ', category: 'portrait', filterCSS: 'contrast(100%) saturate(125%) brightness(100%) sepia(5%) hue-rotate(10deg)', rawValues: { con: 100, sat: 125, bri: 100, sep: 5, hue: 10 } },
-            { id: 'p09', name: 'Hoàng Hôn', category: 'portrait', filterCSS: 'contrast(110%) saturate(130%) brightness(105%) sepia(15%) hue-rotate(20deg)', rawValues: { con: 110, sat: 130, bri: 105, sep: 15, hue: 20 } },
-            { id: 'p10', name: 'Vibe Film', category: 'portrait', filterCSS: 'contrast(105%) saturate(110%) brightness(95%) sepia(20%) hue-rotate(5deg)', rawValues: { con: 105, sat: 110, bri: 95, sep: 20, hue: 5 } }
-        ];
-        filtersConfig.push(...portraitFilters);
-
-        function triggerAIAnalysis() {
-            loadingToast.innerText = "⚡ AI ĐANG QUÉT KHÔNG GIAN SẮC ĐỘ..."; loadingToast.style.display = 'block';
-            isAIActivated = true; sldAIEffect.value = 100; valAIEffect.innerText = "100%";
-            preAIValues = { con: parseInt(sldContrast.value), sat: parseInt(sldSaturate.value), bri: parseInt(sldBrightness.value), sep: parseInt(sldSepia.value), hue: parseInt(sldHue.value) };
-            setTimeout(() => {
-                const base = filtersConfig.find(f => f.id === selectedFilterId)?.rawValues || { con: 100, sat: 100, bri: 100, sep: 0, hue: 0 };
-                targetAIValues = { con: Math.round(base.con*0.95+10), sat: Math.round(base.sat*1.05), bri: Math.round(base.bri*0.98+4), sep: Math.round(base.sep*0.8), hue: base.hue+5 };
-                sldContrast.value = targetAIValues.con; sldSaturate.value = targetAIValues.sat; sldBrightness.value = targetAIValues.bri; sldSepia.value = targetAIValues.sep; sldHue.value = targetAIValues.hue;
-                applyManualSliders(); hudMixStats.innerText = `✨ AI Đã Trộn Màu`; loadingToast.style.display = 'none';
-            }, 600);
-        }
-
-        function applyManualSliders() {
-            let con = parseInt(sldContrast.value), sat = parseInt(sldSaturate.value), bri = parseInt(sldBrightness.value), sep = parseInt(sldSepia.value), hue = parseInt(sldHue.value);
-            if (isAIActivated) {
-                const ai = parseInt(sldAIEffect.value)/100; valAIEffect.innerText = sldAIEffect.value + "%";
-                con = Math.round(preAIValues.con + (targetAIValues.con - preAIValues.con)*ai);
-                sat = Math.round(preAIValues.sat + (targetAIValues.sat - preAIValues.sat)*ai);
-                bri = Math.round(preAIValues.bri + (targetAIValues.bri - preAIValues.bri)*ai);
-                sep = Math.round(preAIValues.sep + (targetAIValues.sep - preAIValues.sep)*ai);
-                hue = Math.round(preAIValues.hue + (targetAIValues.hue - preAIValues.hue)*ai);
-            }
-            valSldContrast.innerText = con + "%"; valSldSaturate.innerText = sat + "%"; valSldBrightness.innerText = bri + "%"; valSldSepia.innerText = sep + "%"; valSldHue.innerText = hue + "°";
-            previewImage.style.filter = `contrast(${con}%) saturate(${sat}%) brightness(${bri}%) sepia(${sep}%) hue-rotate(${hue}deg)`;
-        }
-
-        function selectFilter(f) {
-            selectedFilterId = f.id; hudMixStats.innerText = f.name; isAIActivated = false; sldAIEffect.value = 0; valAIEffect.innerText = "0%";
-            sldContrast.value = f.rawValues.con; sldSaturate.value = f.rawValues.sat; sldBrightness.value = f.rawValues.bri; sldSepia.value = f.rawValues.sep; sldHue.value = f.rawValues.hue;
-            applyManualSliders(); renderFilterBar();
-        }
-
-        function changeCategory(cat) {
-            currentCategory = cat;
-            document.querySelectorAll('.category-tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(cat === 'all' ? 'tab-all' : cat === 'film-retro' ? 'tab-retro' : cat === 'cyber-nature' ? 'tab-cyber' : cat === 'horror-cinematic' ? 'tab-horror' : cat === 'sea-ocean' ? 'tab-sea' : 'tab-portrait').classList.add('active');
-            renderFilterBar();
-        }
-
-        function renderFilterBar() {
-            filterBar.innerHTML = '';
-            filtersConfig.filter(f => currentCategory === 'all' || f.category === currentCategory).forEach(f => {
-                const item = document.createElement('div');
-                item.className = `filter-item ${f.id === selectedFilterId ? 'active' : ''}`;
-                item.onclick = () => selectFilter(f);
-                item.innerHTML = `<div class="filter-thumb" style="background:#252a28"></div><div class="filter-name">${f.name}</div>`;
-                filterBar.appendChild(item);
+        // Lắng nghe sự kiện kéo slider để cập nhật số hiển thị và cập nhật ảnh vẽ
+        const sliders = ['brightness', 'contrast', 'saturation'];
+        sliders.forEach(id => {
+            const el = document.getElementById(`slider-${id}`);
+            el.addEventListener('input', () => {
+                document.getElementById(`val-${id}`).innerText = parseFloat(el.value).toFixed(2);
+                applyFilters();
             });
+        });
+
+        // Xử lý khi người dùng upload ảnh mới của họ lên
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    originalImage = new Image();
+                    originalImage.onload = () => {
+                        // Tính toán giữ nguyên tỉ lệ ảnh
+                        canvas.width = originalImage.width;
+                        canvas.height = originalImage.height;
+                        applyFilters();
+                    };
+                    originalImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Hàm áp dụng hiệu ứng lên Canvas để xem trước (Live Preview)
+        function applyFilters() {
+            if (!originalImage.src) return;
+            
+            const b = document.getElementById('slider-brightness').value;
+            const c = document.getElementById('slider-contrast').value;
+            const s = document.getElementById('slider-saturation').value;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Sử dụng CSS filter của Canvas để render thời gian thực cực mượt
+            // Biến đổi giá trị sang định dạng chuẩn của CSS
+            const brightnessPercent = b * 100;
+            const contrastPercent = c * 100;
+            const saturatePercent = s * 100;
+
+            ctx.filter = `brightness(${brightnessPercent}%) contrast(${contrastPercent}%) saturate(${saturatePercent}%)`;
+            ctx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
         }
 
-        function toggleProMode() { isProModeActive = !isProModeActive; proPanel.classList.toggle('active'); proToggleBtn.classList.toggle('pro-active-tab'); }
-        function applyProControls() {
-            const ev = parseInt(proEV.value)/10; valEV.innerText = (ev>=0?"+":"")+ev.toFixed(1); valContrast.innerText = proContrast.value+"%"; valSat.innerText = proSat.value+"%";
-            video.style.filter = `brightness(${100+(ev*15)}%) contrast(${proContrast.value}%) saturate(${proSat.value}%) ${proWB.value==="daylight"?"sepia(8%) hue-rotate(5deg)":proWB.value==="tungsten"?"hue-rotate(-15deg) saturate(110%)":""}`;
+        // Hàm Đặt lại các thông số về mặc định (1.0)
+        function resetSliders() {
+            sliders.forEach(id => {
+                document.getElementById(`slider-${id}`).value = 1;
+                document.getElementById(`val-${id}`).innerText = "1.00";
+            });
+            applyFilters();
         }
-        function applyCameraZoom(v) { video.style.transform = `scale(${v/10})`; zoomValue.innerText = `Zoom: ${(v/10).toFixed(1)}x`; }
-        function applyPreviewZoom(v) { previewImage.style.transform = `scale(${v/10})`; previewZoomValue.innerText = `Cắt: ${(v/10).toFixed(1)}x`; }
 
-        async function initCam() {
-            try { currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: useFacingMode } }); video.srcObject = currentStream; } catch (e) { console.error(e); }
+        // THUẬT TOÁN QUAN TRỌNG: Tạo ma trận màu 3D và xuất file .CUBE chuẩn Blackmagic
+        function exportToCube() {
+            const bSetting = parseFloat(document.getElementById('slider-brightness').value);
+            const cSetting = parseFloat(document.getElementById('slider-contrast').value);
+            const sSetting = parseFloat(document.getElementById('slider-saturation').value);
+
+            const size = 33; // Kích thước ma trận 3D LUT tiêu chuẩn cho thiết bị phần cứng
+            let cubeContent = `TITLE "Sopcare_AI_Studio_LUT"\n`;
+            cubeContent += `LUT_3D_SIZE ${size}\n\n`;
+
+            // Chạy 3 vòng lặp lồng nhau cho 3 trục màu R, G, B
+            for (let b = 0; b < size; b++) {
+                for (let g = 0; g < size; g++) {
+                    for (let r = 0; r < size; r++) {
+                        // Tọa độ màu gốc trong không gian [0.0 - 1.0]
+                        let rOrig = r / (size - 1);
+                        let gOrig = g / (size - 1);
+                        let bOrig = b / (size - 1);
+
+                        // 1. Áp dụng Độ sáng (Brightness)
+                        let rNew = rOrig * bSetting;
+                        let gNew = gOrig * bSetting;
+                        let bNew = bOrig * bSetting;
+
+                        // 2. Áp dụng Độ tương phản (Contrast quanh điểm neo trung tâm 0.5)
+                        rNew = (rNew - 0.5) * cSetting + 0.5;
+                        gNew = (gNew - 0.5) * cSetting + 0.5;
+                        bNew = (bNew - 0.5) * cSetting + 0.5;
+
+                        // 3. Áp dụng Độ bão hòa màu (Saturation qua công thức tính Luma tiêu chuẩn)
+                        const luma = 0.2126 * rNew + 0.7152 * gNew + 0.0722 * bNew;
+                        rNew = luma + (rNew - luma) * sSetting;
+                        gNew = luma + (gNew - luma) * sSetting;
+                        bNew = luma + (bNew - luma) * sSetting;
+
+                        // Đảm bảo dữ liệu không vượt quá ngưỡng quy định [0.0, 1.0] nhằm tránh lỗi hiển thị trên Monitor
+                        rNew = Math.max(0, Math.min(1, rNew)).toFixed(6);
+                        gNew = Math.max(0, Math.min(1, gNew)).toFixed(6);
+                        bNew = Math.max(0, Math.min(1, bNew)).toFixed(6);
+
+                        // Đẩy dòng dữ liệu màu vào file text
+                        cubeContent += `${rNew} ${gNew} ${bNew}\n`;
+                    }
+                }
+            }
+
+            // Tạo lệnh tải xuống trực tiếp trên trình duyệt
+            const blob = new Blob([cubeContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Sopcare_Studio_Color.cube';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
-        function toggleCamera() { useFacingMode = (useFacingMode === "environment") ? "user" : "environment"; initCam(); }
-        function changeLayout(l, b) { document.querySelectorAll('.overlay-layer').forEach(y => y.classList.remove('active')); document.querySelectorAll('.mode-btn').forEach(x => x.classList.remove('selected')); document.getElementById(`layout-${l}`).classList.add('active'); b.classList.add('selected'); }
-        function uploadLocalImage(e) { const reader = new FileReader(); reader.onload = (ev) => { originalImageDataUrl = ev.target.result; previewImage.src = originalImageDataUrl; cameraView.style.display = 'none'; previewView.style.display = 'flex'; selectFilter(filtersConfig[0]); }; reader.readAsDataURL(e.target.files[0]); }
-        function takePhoto(n) { canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d').drawImage(video, 0, 0); originalImageDataUrl = canvas.toDataURL(); previewImage.src = originalImageDataUrl; cameraView.style.display = 'none'; previewView.style.display = 'flex'; selectFilter(filtersConfig[0]); }
-        function cancelPreview() { previewView.style.display = 'none'; cameraView.style.display = 'flex'; }
-        function downloadFinalImage() { const a = document.createElement('a'); a.href = originalImageDataUrl; a.download = 'Sopcare_AI.png'; a.click(); }
 
-        window.addEventListener('DOMContentLoaded', () => { initCam(); renderFilterBar(); });
+        // Tự động chạy lần đầu khi mở trang web
+        window.onload = () => {
+            createDefaultSample();
+            setTimeout(applyFilters, 100);
+        };
     </script>
 </body>
 </html>
