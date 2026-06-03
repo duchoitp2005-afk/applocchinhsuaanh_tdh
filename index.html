@@ -2,156 +2,253 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sopcare - LUT Player</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUT .Cube Viewer & Processor</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #0a0b0e; color: #fff; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 450px; background: #141722; padding: 15px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { text-align: center; font-size: 1.2rem; margin-bottom: 15px; color: #00fff0; }
-        .preview-box { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; display: flex; justify-content: center; align-items: center; overflow: hidden; border: 1px solid #23293a; }
-        #preview-canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .btn { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; display: block; }
-        .btn-file { background: #1f2430; color: #a0aec0; border: 1px dashed #00fff0; }
-        .btn-save { background: #00fff0; color: #0a0b0e; }
-        input[type="file"] { display: none; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e24;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: #4fc3f7; }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: #2a2a35;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .upload-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #333344;
+            border-radius: 6px;
+        }
+        .file-input {
+            flex: 1;
+            min-width: 250px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ffb74d;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            background: #222;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 4px;
+        }
+        .preview-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .canvas-container {
+            text-align: center;
+            flex: 1;
+            min-width: 300px;
+        }
+        canvas, img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            background: #111;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .status {
+            margin-top: 10px;
+            font-style: italic;
+            color: #a7ffeb;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Sopcare LUT Player</h2>
-        
-        <div class="preview-box">
-            <canvas id="preview-canvas"></canvas>
+
+<div class="container">
+    <h1>Bộ Xem và Áp Dụng File LUT (.cube)</h1>
+    <p>Tải ảnh và file LUT của bạn lên để xem kết quả thay đổi màu sắc thời gian thực.</p>
+
+    <div class="upload-section">
+        <div class="file-input">
+            <label for="imageLoader">1. Chọn hình ảnh (JPG/PNG):</label>
+            <input type="file" id="imageLoader" accept="image/*">
         </div>
-
-        <label for="input-img" class="btn btn-file">🖼️ BƯỚC 1: MỞ ẢNH GỐC</label>
-        <input type="file" id="input-img" accept="image/*">
-
-        <label for="input-lut" class="btn btn-file" style="border-color: #ff9f43;">🎨 BƯỚC 2: ÁP FILE MÀU (.CUBE)</label>
-        <input type="file" id="input-lut" accept=".cube">
-
-        <button class="btn btn-save" onclick="saveImg()">💾 BƯỚC 3: TẢI ẢNH ĐÃ ÁP LUT</button>
+        <div class="file-input">
+            <label for="lutLoader">2. Chọn file màu LUT (.cube):</label>
+            <input type="file" id="lutLoader" accept=".cube">
+        </div>
     </div>
 
-    <script>
-        const canvas = document.getElementById('preview-canvas');
-        const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
+    <div id="status" class="status">Hệ thống sẵn sàng. Vui lòng chọn đủ Ảnh và file LUT.</div>
+
+    <div class="preview-area">
+        <div class="canvas-container">
+            <h3>Ảnh gốc</h3>
+            <img id="originalImage" src="" alt="Chưa có ảnh" style="display:none;">
+            <canvas id="canvasOriginal"></canvas>
+        </div>
+        <div class="canvas-container">
+            <h3>Ảnh đã áp dụng LUT</h3>
+            <canvas id="canvasResult"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    const imageLoader = document.getElementById('imageLoader');
+    const lutLoader = document.getElementById('lutLoader');
+    const canvasOriginal = document.getElementById('canvasOriginal');
+    const canvasResult = document.getElementById('canvasResult');
+    const ctxOrig = canvasOriginal.getContext('2d');
+    const ctxRes = canvasResult.getContext('2d');
+    const statusDiv = document.getElementById('status');
+
+    let loadedImage = null;
+    let lutData = null;
+
+    // 1. Lắng nghe sự kiện up ảnh
+    imageLoader.addEventListener('change', handleImage, false);
+    // 2. Lắng nghe sự kiện up file LUT
+    lutLoader.addEventListener('change', handleLUT, false);
+
+    function handleImage(e) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            img = new Image();
+            img.onload = function() {
+                loadedImage = img;
+                canvasOriginal.width = img.width;
+                canvasOriginal.height = img.height;
+                canvasResult.width = img.width;
+                canvasResult.height = img.height;
+                
+                ctxOrig.drawImage(img, 0, 0);
+                ctxRes.drawImage(img, 0, 0); // Tạm thời vẽ ảnh gốc lên kết quả
+                
+                statusDiv.innerText = "Đã tải ảnh thành công.";
+                applyLUT();
+            }
+            img.src = event.target.result;
+        }
+        if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+    }
+
+    function handleLUT(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const text = event.target.result;
+            lutData = parseCubeLUT(text);
+            if (lutData) {
+                statusDiv.innerText = `Đã tải LUT: Kích thước khối ${lutData.size}x${lutData.size}x${lutData.size}`;
+                applyLUT();
+            } else {
+                statusDiv.innerText = "Lỗi: File .cube không đúng định dạng chuẩn.";
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Bộ Parse file .cube thành cấu trúc mảng 3D mã màu
+    function parseCubeLUT(text) {
+        const lines = text.split('\n');
+        let size = 0;
+        let data = [];
+        let domainMin = [0, 0, 0];
+        let domainMax = [1, 1, 1];
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (line === '' || line.startsWith('#')) continue;
+
+            const parts = line.split(/\s+/);
+
+            if (parts[0] === 'LUT_3D_SIZE') {
+                size = parseInt(parts[1]);
+                continue;
+            }
+            if (parts[0] === 'DOMAIN_MIN') {
+                domainMin = [parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])];
+                continue;
+            }
+            if (parts[0] === 'DOMAIN_MAX') {
+                domainMax = [parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])];
+                continue;
+            }
+
+            // Đọc các dòng chứa dữ liệu màu RGB (Thường từ 0.0 đến 1.0)
+            if (parts.length === 3 && !isNaN(parseFloat(parts[0]))) {
+                data.push([
+                    parseFloat(parts[0]),
+                    parseFloat(parts[1]),
+                    parseFloat(parts[2])
+                ]);
+            }
+        }
+
+        if (size === 0 || data.length !== size * size * size) {
+            return null; // File lỗi hoặc không đủ data
+        }
+
+        return { size, data, domainMin, domainMax };
+    }
+
+    // Hàm áp dụng LUT lên từng pixel của Canvas
+    function applyLUT() {
+        if (!loadedImage || !lutData) return;
+
+        statusDiv.innerText = "Đang xử lý ảnh với LUT...";
         
-        let originalImage = new Image();
-        let glTexture = null, lutTexture = null, glProgram = null;
-        let hasLut = 0, isReady = false;
+        // Lấy dữ liệu pixel từ ảnh gốc
+        const imgData = ctxOrig.getImageData(0, 0, canvasOriginal.width, canvasOriginal.height);
+        const pixels = imgData.data;
+        const size = lutData.size;
+        const lut = lutData.data;
 
-        if (!gl) alert("Thiết bị không hỗ trợ WebGL2!");
+        // Vòng lặp xử lý từng pixel (R, G, B, A)
+        for (let i = 0; i < pixels.length; i += 4) {
+            let r = pixels[i] / 255;
+            let g = pixels[i+1] / 255;
+            let b = pixels[i+2] / 255;
 
-        const vsSource = `#version 300 es
-            in vec2 position; out vec2 v_texCoord;
-            void main() {
-                v_texCoord = vec2(position.x * 0.5 + 0.5, 0.5 - position.y * 0.5);
-                gl_Position = vec4(position, 0.0, 1.0);
+            // Tìm vị trí Index trong khối 3D LUT (Nội suy tuyến tính đơn giản gần nhất)
+            let rIdx = Math.min(Math.floor(r * (size - 1)), size - 1);
+            let gIdx = Math.min(Math.floor(g * (size - 1)), size - 1);
+            let bIdx = Math.min(Math.floor(b * (size - 1)), size - 1);
+
+            // Công thức tính vị trí index trong mảng phẳng 1 chiều của file .cube 
+            // Thứ tự lưu phổ biến của .cube là R chạy nhanh nhất, rồi tới G, rồi tới B
+            let lutIndex = rIdx + gIdx * size + bIdx * size * size;
+
+            if (lut[lutIndex]) {
+                pixels[i]   = Math.min(Math.max(lut[lutIndex][0] * 255, 0), 255); // R mới
+                pixels[i+1] = Math.min(Math.max(lut[lutIndex][1] * 255, 0), 255); // G mới
+                pixels[i+2] = Math.min(Math.max(lut[lutIndex][2] * 255, 0), 255); // B mới
             }
-        `;
-
-        const fsSource = `#version 300 es
-            precision highp float; precision highp sampler3D;
-            in vec2 v_texCoord; uniform sampler2D u_image; uniform sampler3D u_lutTexture; uniform int u_hasLut;
-            out vec4 outColor;
-            void main() {
-                vec4 color = texture(u_image, v_texCoord);
-                vec3 rgb = color.rgb;
-                if (u_hasLut == 1) { rgb = texture(u_lutTexture, rgb).rgb; }
-                outColor = vec4(clamp(rgb, 0.0, 1.0), color.a);
-            }
-        `;
-
-        function initWebGL() {
-            canvas.width = 1; canvas.height = 1;
-            const vs = gl.createShader(gl.VERTEX_SHADER); gl.shaderSource(vs, vsSource); gl.compileShader(vs);
-            const fs = gl.createShader(gl.FRAGMENT_SHADER); gl.shaderSource(fs, fsSource); gl.compileShader(fs);
-            
-            glProgram = gl.createProgram(); gl.attachShader(glProgram, vs); gl.attachShader(glProgram, fs); gl.linkProgram(glProgram);
-            
-            const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
-            const pos = gl.getAttribLocation(glProgram, "position");
-            gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
-
-            glTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, glTexture);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
-            isReady = true;
         }
 
-        function draw() {
-            if (!originalImage.src || !isReady) return;
-            canvas.width = originalImage.width > 1200 ? 1200 : originalImage.width;
-            canvas.height = (canvas.width * originalImage.height) / originalImage.width;
-            
-            gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(glProgram);
-            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, glTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, originalImage);
-            gl.uniform1i(gl.getUniformLocation(glProgram, "u_image"), 0);
+        // Vẽ kết quả ra canvas bên phải
+        ctxRes.putImageData(imgData, 0, 0);
+        statusDiv.innerText = "Áp dụng hiệu ứng LUT thành công!";
+    }
+</script>
 
-            if (hasLut === 1 && lutTexture) {
-                gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_3D, lutTexture);
-                gl.uniform1i(gl.getUniformLocation(glProgram, "u_lutTexture"), 1);
-            }
-            gl.uniform1i(gl.getUniformLocation(glProgram, "u_hasLut"), hasLut);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-        }
-
-        document.getElementById('input-img').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if (!file) return;
-            const r = new FileReader();
-            r.onload = (ev) => {
-                originalImage = new Image();
-                originalImage.onload = () => { hasLut = 0; draw(); };
-                originalImage.src = ev.target.result;
-            };
-            r.readAsDataURL(file);
-        });
-
-        document.getElementById('input-lut').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if (!file || !originalImage.src) { alert("Hãy mở ảnh trước khi chọn file LUT!"); return; }
-            const r = new FileReader();
-            r.onload = (ev) => {
-                const lines = ev.target.result.split('\n');
-                let size = 0, lutData = [];
-                for (let i = 0; i < lines.length; i++) {
-                    let line = lines[i].trim();
-                    if (line.startsWith('LUT_3D_SIZE')) { size = parseInt(line.split(/\s+/)[1]); continue; }
-                    if (line === '' || line.startsWith('#') || line.startsWith('TITLE')) continue;
-                    let p = line.split(/\s+/);
-                    if (p.length === 3) {
-                        lutData.push(Math.floor(parseFloat(p[0])*255), Math.floor(parseFloat(p[1])*255), Math.floor(parseFloat(p[2])*255), 255);
-                    }
-                }
-                if (size > 0 && lutData.length / 4 === size * size * size) {
-                    if (lutTexture) gl.deleteTexture(lutTexture);
-                    lutTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_3D, lutTexture);
-                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                    gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                    gl.texImage3D(gl.TEXTURE_3D, 0, gl.RGBA, size, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(lutData));
-                    hasLut = 1; draw();
-                } else { alert("File .cube lỗi hoặc không đúng định dạng!"); }
-            };
-            r.readAsText(file);
-        });
-
-        function saveImg() {
-            if (!originalImage.src || canvas.width <= 1) return;
-            const a = document.createElement('a'); a.download = 'Sopcare_LUT.jpg';
-            a.href = canvas.toDataURL('image/jpeg', 0.95);
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }
-
-        window.onload = initWebGL;
-    </script>
 </body>
 </html>
