@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Comic Manga Generator</title>
+    <title>AI Comic Manga Generator (Dynamic & Downloadable)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --bg-color: #121214;
             --card-bg: #1a1a1e;
             --primary: #8b5cf6;
+            --success: #10b981;
             --text: #f3f4f6;
         }
         body {
@@ -50,10 +52,15 @@
         }
         textarea { height: 120px; resize: none; }
         .full-width { grid-column: 1 / -1; }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
         button {
             width: 100%;
             padding: 15px;
-            background: var(--primary);
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -62,17 +69,24 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        button:hover { background: #7c3aed; }
+        #genBtn { background: var(--primary); }
+        #genBtn:hover { background: #7c3aed; }
+        #dlBtn { background: var(--success); display: none; }
+        #dlBtn:hover { background: #059669; }
         button:disabled { background: #4b5563; cursor: not-allowed; }
+        
         .loading { display: none; text-align: center; color: #a78bfa; font-weight: bold; margin: 20px 0; font-size: 15px; }
         
-        .comic-book {
-            display: none;
+        /* Khung truyện tranh */
+        .comic-wrapper {
             margin-top: 35px;
-            border: 4px solid #fff;
-            background: #fff;
             padding: 15px;
+            background: #fff; /* Nền trắng chuẩn truyện tranh khi xuất file */
+            border: 4px solid #000;
             border-radius: 4px;
+        }
+        .comic-book {
+            display: grid;
             grid-template-columns: 1fr;
             gap: 12px;
         }
@@ -89,8 +103,9 @@
             align-items: center;
             justify-content: center;
         }
-        @media(min-width: 600px) {
-            .panel-3 { grid-column: 1 / -1; aspect-ratio: 16/7; }
+        .panel.full-row {
+            grid-column: 1 / -1;
+            aspect-ratio: 16/7;
         }
         .panel img {
             width: 100%;
@@ -137,9 +152,9 @@
             display: block;
             width: 0;
         }
-        .panel-2 .speech-bubble { left: auto; right: 10px; }
-        .panel-2 .speech-bubble::after { left: auto; right: 15px; }
-        .panel-2 .speech-bubble::before { left: auto; right: 14px; }
+        .panel:nth-child(even) .speech-bubble { left: auto; right: 10px; }
+        .panel:nth-child(even) .speech-bubble::after { left: auto; right: 15px; }
+        .panel:nth-child(even) .speech-bubble::before { left: auto; right: 14px; }
     </style>
 </head>
 <body>
@@ -162,23 +177,15 @@
         </div>
     </div>
 
-    <button id="genBtn" onclick="generateComic()">Bắt đầu vẽ truyện tranh</button>
+    <div class="btn-group">
+        <button id="genBtn" onclick="generateComic()">Bắt đầu vẽ truyện tranh</button>
+        <button id="dlBtn" onclick="downloadComic()">📥 Tải trọn bộ truyện tranh về máy</button>
+    </div>
     
-    <div class="loading" id="loading">Hệ thống đang xử lý và vẽ tranh, vui lòng chờ trong giây lát...</div>
+    <div class="loading" id="loading">Hệ thống đang phân tích kịch bản và vẽ tranh, vui lòng chờ...</div>
 
-    <div class="comic-book" id="comicBook">
-        <div class="panel panel-1" id="p1">
-            <div class="speech-bubble" id="dialogue1">...</div>
-            <img id="img1" src="" alt="Đang tải..." style="display:none;">
-        </div>
-        <div class="panel panel-2" id="p2">
-            <div class="speech-bubble" id="dialogue2">...</div>
-            <img id="img2" src="" alt="Đang tải..." style="display:none;">
-        </div>
-        <div class="panel panel-3" id="p3">
-            <div class="speech-bubble" id="dialogue3">...</div>
-            <img id="img3" src="" alt="Đang tải..." style="display:none;">
-        </div>
+    <div id="downloadArea" class="comic-wrapper" style="display: none;">
+        <div class="comic-book" id="comicBook"></div>
     </div>
 </div>
 
@@ -188,31 +195,32 @@
         const hfKey = document.getElementById('hfKey').value.trim();
         const outline = document.getElementById('outline').value.trim();
         const btn = document.getElementById('genBtn');
+        const dlBtn = document.getElementById('dlBtn');
         const loading = document.getElementById('loading');
+        const downloadArea = document.getElementById('downloadArea');
         const comicBook = document.getElementById('comicBook');
 
         if(!geminiKey || !hfKey || !outline) {
-            alert("Vui lòng điền đầy đủ cả 2 Key và Dàn ý kịch bản!");
+            alert("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
         btn.disabled = true;
+        dlBtn.style.display = "none";
         loading.style.display = "block";
-        comicBook.style.display = "none";
+        downloadArea.style.display = "none";
+        comicBook.innerHTML = ""; 
 
         try {
-            // Sửa đường link API chuẩn mã hóa HTTPS bảo mật cao hơn cho GitHub Pages
             const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
             
-            const systemPrompt = `Bạn là một biên kịch truyện tranh chuyên nghiệp. Hãy chuyển đổi dàn ý sau đây thành đúng 3 phân cảnh liên tiếp. 
-            Hãy trả về kết quả DUY NHẤT dưới dạng chuỗi JSON hợp lệ (Không bao gồm bất kỳ từ ngữ nào khác ngoài JSON, không bọc trong ký hiệu cuộn code \`\`\`json).
-            Cấu trúc JSON chính xác như sau:
+            const systemPrompt = `Bạn là một biên kịch truyện tranh. Hãy phân tích dàn ý và chia câu chuyện thành một số lượng phân cảnh hợp lý (từ 2 đến 6 phân cảnh) tùy vào độ dài cốt truyện.
+            Trả về chuỗi mảng JSON hợp lệ duy nhất (không bọc trong \`\`\`json).
+            Cấu trúc:
             [
-              {"image_prompt": "Detailed English description for image generation, historical Vietnamese comic style, clean lines, colorful", "dialogue": "Lời thoại rất ngắn gọn bằng tiếng Việt cho cảnh 1"},
-              {"image_prompt": "Detailed English description for image generation, historical Vietnamese comic style, clean lines, colorful", "dialogue": "Lời thoại rất ngắn gọn bằng tiếng Việt cho cảnh 2"},
-              {"image_prompt": "Detailed English description for image generation, historical Vietnamese comic style, clean lines, colorful", "dialogue": "Lời thoại rất ngắn gọn bằng tiếng Việt cho cảnh 3"}
+              {"image_prompt": "Detailed English description for image generation, beautiful anime comic style, clean lines, colorful", "dialogue": "Lời thoại tiếng Việt ngắn"}
             ]
-            Dàn ý truyện: "${outline}"`;
+            Dàn ý: "${outline}"`;
 
             const geminiRes = await fetch(geminiUrl, {
                 method: "POST",
@@ -220,19 +228,14 @@
                 body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
             });
 
-            if (!geminiRes.ok) throw new Error("Mã Gemini API Key không chính xác hoặc hết hạn.");
+            if (!geminiRes.ok) throw new Error("Mã Gemini API Key không chính xác.");
 
             const geminiData = await geminiRes.json();
             let rawText = geminiData.candidates[0].content.parts[0].text.trim();
-            
             rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
             const comicData = JSON.parse(rawText);
 
-            document.getElementById('dialogue1').innerText = comicData[0].dialogue;
-            document.getElementById('dialogue2').innerText = comicData[1].dialogue;
-            document.getElementById('dialogue3').innerText = comicData[2].dialogue;
-
-            const hfUrl = "[https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell](https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell)";
+            const hfUrl = "[https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0](https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0)";
             
             const fetchImage = async (prompt) => {
                 const res = await fetch(hfUrl, {
@@ -243,30 +246,70 @@
                     },
                     body: JSON.stringify({ inputs: prompt })
                 });
-                if(!res.ok) throw new Error("Mã Hugging Face Token chưa đúng hoặc máy chủ AI đang bận.");
+                if(!res.ok) throw new Error("Máy chủ vẽ tranh đang bận, vui lòng thử lại sau ít giây.");
                 const blob = await res.blob();
                 return URL.createObjectURL(blob);
             };
 
-            const [url1, url2, url3] = await Promise.all([
-                fetchImage(comicData[0].image_prompt),
-                fetchImage(comicData[1].image_prompt),
-                fetchImage(comicData[2].image_prompt)
-            ]);
+            const imagePromises = comicData.map(async (scene, index) => {
+                const panel = document.createElement('div');
+                panel.className = 'panel';
+                
+                if (comicData.length % 2 !== 0 && index === comicData.length - 1) {
+                    panel.classList.add('full-row');
+                }
 
-            document.getElementById('img1').src = url1; document.getElementById('img1').style.display = "block";
-            document.getElementById('img2').src = url2; document.getElementById('img2').style.display = "block";
-            document.getElementById('img3').src = url3; document.getElementById('img3').style.display = "block";
+                const bubble = document.createElement('div');
+                bubble.className = 'speech-bubble';
+                bubble.innerText = scene.dialogue;
+                
+                const img = document.createElement('img');
+                img.alt = "Đang vẽ...";
+                // Thuộc tính giúp thư viện chụp ảnh không bị lỗi bảo mật (CORS)
+                img.crossOrigin = "anonymous"; 
+                
+                panel.appendChild(bubble);
+                panel.appendChild(img);
+                comicBook.appendChild(panel);
 
-            comicBook.style.display = "grid";
+                try {
+                    const imgUrl = await fetchImage(scene.image_prompt);
+                    img.src = imgUrl;
+                } catch (err) {
+                    img.alt = "Lỗi tạo hình";
+                }
+            });
+
+            await Promise.all(imagePromises);
+            downloadArea.style.display = "block";
+            dlBtn.style.display = "block"; // Hiện nút tải về khi vẽ xong dữ liệu
 
         } catch (error) {
-            alert("Có lỗi xảy ra: " + error.message + "\nHướng xử lý: Hãy kiểm tra kỹ lại độ chính xác của 2 mã khóa Key.");
-            console.error(error);
+            alert("Có lỗi xảy ra: " + error.message);
         } finally {
             btn.disabled = false;
             loading.style.display = "none";
         }
+    }
+
+    // Hàm xử lý xuất và tải toàn bộ truyện dưới dạng ảnh PNG
+    function downloadComic() {
+        const target = document.getElementById('downloadArea');
+        
+        // Cấu hình html2canvas để xử lý mượt mà ảnh dạng Blob URL
+        html2canvas(target, {
+            useCORS: true,
+            allowTaint: true,
+            scale: 2 // Tăng chất lượng ảnh lên gấp đôi cho nét
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'my-ai-comic.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            alert("Không thể tự động xuất ảnh, bạn hãy chụp màn hình điện thoại nhé!");
+            console.error(err);
+        });
     }
 </script>
 
