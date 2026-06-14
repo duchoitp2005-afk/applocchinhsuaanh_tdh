@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Comic Manga Generator (Dynamic & Downloadable)</title>
+    <title>AI Comic Manga Generator (Full Upgraded)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -50,7 +50,7 @@
             box-sizing: border-box;
             width: 100%;
         }
-        textarea { height: 120px; resize: none; }
+        textarea { height: 140px; resize: none; }
         .full-width { grid-column: 1 / -1; }
         
         .btn-group {
@@ -77,25 +77,25 @@
         
         .loading { display: none; text-align: center; color: #a78bfa; font-weight: bold; margin: 20px 0; font-size: 15px; }
         
-        /* Khung truyện tranh */
+        /* Khung truyện tranh xuất bản */
         .comic-wrapper {
             margin-top: 35px;
-            padding: 15px;
-            background: #fff; /* Nền trắng chuẩn truyện tranh khi xuất file */
-            border: 4px solid #000;
-            border-radius: 4px;
+            padding: 20px;
+            background: #fff; 
+            border: 5px solid #000;
+            border-radius: 6px;
         }
         .comic-book {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 15px;
         }
         @media(min-width: 600px) {
             .comic-book { grid-template-columns: 1fr 1fr; }
         }
         .panel {
             position: relative;
-            border: 3px solid #000;
+            border: 3.5px solid #000;
             overflow: hidden;
             background: #f3f4f6;
             aspect-ratio: 4/3;
@@ -113,20 +113,21 @@
             object-fit: cover;
         }
         
+        /* Bong bóng lời thoại */
         .speech-bubble {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 12px;
+            left: 12px;
             max-width: 75%;
             background: white;
             color: black;
-            border: 2px solid black;
+            border: 2.5px solid black;
             border-radius: 16px;
-            padding: 6px 10px;
-            font-size: 12px;
+            padding: 8px 12px;
+            font-size: 12.5px;
             font-weight: bold;
-            line-height: 1.3;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            line-height: 1.4;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
             z-index: 10;
             text-align: center;
         }
@@ -134,7 +135,7 @@
             content: '';
             position: absolute;
             bottom: -8px;
-            left: 15px;
+            left: 18px;
             border-width: 8px 8px 0;
             border-style: solid;
             border-color: white transparent;
@@ -144,17 +145,18 @@
         .speech-bubble::before {
             content: '';
             position: absolute;
-            bottom: -11px;
-            left: 14px;
+            bottom: -11.5px;
+            left: 17px;
             border-width: 9px 9px 0;
             border-style: solid;
             border-color: black transparent;
             display: block;
             width: 0;
         }
-        .panel:nth-child(even) .speech-bubble { left: auto; right: 10px; }
-        .panel:nth-child(even) .speech-bubble::after { left: auto; right: 15px; }
-        .panel:nth-child(even) .speech-bubble::before { left: auto; right: 14px; }
+        /* Bong bóng thoại đan xen trái phải cho sinh động */
+        .panel:nth-child(even) .speech-bubble { left: auto; right: 12px; }
+        .panel:nth-child(even) .speech-bubble::after { left: auto; right: 18px; }
+        .panel:nth-child(even) .speech-bubble::before { left: auto; right: 17px; }
     </style>
 </head>
 <body>
@@ -165,15 +167,15 @@
     <div class="grid-inputs">
         <div class="form-group">
             <label>Gemini API Key:</label>
-            <input type="password" id="geminiKey" placeholder="Dán mã AIzaSy... tại đây">
+            <input type="password" id="geminiKey" placeholder="Dán mã AIzaSy... mới tại đây">
         </div>
         <div class="form-group">
             <label>Hugging Face Token:</label>
-            <input type="password" id="hfKey" placeholder="Dán mã hf_... tại đây">
+            <input type="password" id="hfKey" placeholder="Dán mã hf_... chuẩn tại đây">
         </div>
         <div class="form-group full-width">
-            <label>Nhập kịch bản / Dàn ý của bạn:</label>
-            <textarea id="outline" placeholder="Nhập nội dung truyện tại đây..."></textarea>
+            <label>Nhập kịch bản / Ý tưởng truyện (Dài ngắn tùy ý):</label>
+            <textarea id="outline" placeholder="Nhập kịch bản truyện tại đây... Hệ thống sẽ tự động phân chia số khung hình dựa trên độ dài câu chuyện của bạn!"></textarea>
         </div>
     </div>
 
@@ -182,7 +184,7 @@
         <button id="dlBtn" onclick="downloadComic()">📥 Tải trọn bộ truyện tranh về máy</button>
     </div>
     
-    <div class="loading" id="loading">Hệ thống đang phân tích kịch bản và vẽ tranh, vui lòng chờ...</div>
+    <div class="loading" id="loading">Hệ thống đang phân tích kịch bản và vẽ ảnh siêu nét, vui lòng chờ...</div>
 
     <div id="downloadArea" class="comic-wrapper" style="display: none;">
         <div class="comic-book" id="comicBook"></div>
@@ -201,7 +203,7 @@
         const comicBook = document.getElementById('comicBook');
 
         if(!geminiKey || !hfKey || !outline) {
-            alert("Vui lòng điền đầy đủ thông tin!");
+            alert("Vui lòng điền đầy đủ cả 2 Key và Kịch bản!");
             return;
         }
 
@@ -214,13 +216,15 @@
         try {
             const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
             
-            const systemPrompt = `Bạn là một biên kịch truyện tranh. Hãy phân tích dàn ý và chia câu chuyện thành một số lượng phân cảnh hợp lý (từ 2 đến 6 phân cảnh) tùy vào độ dài cốt truyện.
-            Trả về chuỗi mảng JSON hợp lệ duy nhất (không bọc trong \`\`\`json).
-            Cấu trúc:
+            // Ép cấu trúc prompt chặt chẽ để Gemini phân phối số phân cảnh tùy cơ ứng biến từ 2 đến 6 cảnh
+            const systemPrompt = `Bạn là một biên kịch và họa sĩ phân cảnh truyện tranh chuyên nghiệp. Hãy phân tích kỹ nội dung cốt truyện sau và tự động phân chia câu chuyện thành một số lượng phân cảnh thích hợp nhất (tối thiểu 2 cảnh, tối đa 6 cảnh) tùy thuộc vào độ dài và các bước ngoặt của tình tiết.
+            Mỗi cảnh phải tạo một lời thoại ngắn gọn bằng tiếng Việt và một mô tả hình ảnh bằng tiếng Anh cực kỳ chi tiết.
+            Hãy trả về kết quả DUY NHẤT dưới dạng một chuỗi mảng JSON chuẩn (Tuyệt đối không chứa từ ngữ thừa, không bọc trong ký tự cuộn code \`\`\`json).
+            Cấu trúc JSON yêu cầu:
             [
-              {"image_prompt": "Detailed English description for image generation, beautiful anime comic style, clean lines, colorful", "dialogue": "Lời thoại tiếng Việt ngắn"}
+              {"image_prompt": "Detailed English description for image generation, beautiful anime manga comic style, clean lines, colorful, highly detailed", "dialogue": "Lời thoại nhân vật bằng tiếng Việt ngắn gọn"}
             ]
-            Dàn ý: "${outline}"`;
+            Cốt truyện: "${outline}"`;
 
             const geminiRes = await fetch(geminiUrl, {
                 method: "POST",
@@ -228,14 +232,17 @@
                 body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
             });
 
-            if (!geminiRes.ok) throw new Error("Mã Gemini API Key không chính xác.");
+            if (!geminiRes.ok) throw new Error("Mã Gemini API Key không chính xác hoặc đã hết hạn dự án.");
 
             const geminiData = await geminiRes.json();
             let rawText = geminiData.candidates[0].content.parts[0].text.trim();
+            
+            // Làm sạch dữ liệu JSON phòng trường hợp Gemini tự ý bọc codeblock
             rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
             const comicData = JSON.parse(rawText);
 
-            const hfUrl = "[https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0](https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0)";
+            // Server Animagine-XL chất lượng cao, chuyên trị lỗi ảnh lỗi
+            const hfUrl = "[https://api-inference.huggingface.co/models/cagliostrolab/animagine-xl-3.1](https://api-inference.huggingface.co/models/cagliostrolab/animagine-xl-3.1)";
             
             const fetchImage = async (prompt) => {
                 const res = await fetch(hfUrl, {
@@ -244,17 +251,22 @@
                         "Authorization": `Bearer ${hfKey}`, 
                         "Content-Type": "application/json" 
                     },
-                    body: JSON.stringify({ inputs: prompt })
+                    body: JSON.stringify({ 
+                        inputs: prompt,
+                        options: { wait_for_model: true } // Ép Hugging Face chờ kích hoạt model nếu server đang ngủ, tránh trả về lỗi
+                    })
                 });
-                if(!res.ok) throw new Error("Máy chủ vẽ tranh đang bận, vui lòng thử lại sau ít giây.");
+                if(!res.ok) throw new Error("Máy chủ vẽ tranh đang bận xử lý, vui lòng bấm thử lại sau ít giây.");
                 const blob = await res.blob();
                 return URL.createObjectURL(blob);
             };
 
+            // Tiến hành dựng các khung hình động linh hoạt lên giao diện
             const imagePromises = comicData.map(async (scene, index) => {
                 const panel = document.createElement('div');
                 panel.className = 'panel';
                 
+                // Nếu tổng số cảnh là số lẻ, thiết lập cho khung cuối cùng trải dài full hàng cho đẹp cân đối
                 if (comicData.length % 2 !== 0 && index === comicData.length - 1) {
                     panel.classList.add('full-row');
                 }
@@ -264,9 +276,8 @@
                 bubble.innerText = scene.dialogue;
                 
                 const img = document.createElement('img');
-                img.alt = "Đang vẽ...";
-                // Thuộc tính giúp thư viện chụp ảnh không bị lỗi bảo mật (CORS)
-                img.crossOrigin = "anonymous"; 
+                img.alt = "AI đang vẽ...";
+                img.crossOrigin = "anonymous"; // Cho phép chụp tải ảnh không vướng bảo mật CORS
                 
                 panel.appendChild(bubble);
                 panel.appendChild(img);
@@ -276,39 +287,44 @@
                     const imgUrl = await fetchImage(scene.image_prompt);
                     img.src = imgUrl;
                 } catch (err) {
-                    img.alt = "Lỗi tạo hình";
+                    img.alt = "Lỗi không thể tải ảnh từ server";
+                    console.error(err);
                 }
             });
 
+            // Chờ tất cả các luồng AI vẽ xong toàn diện
             await Promise.all(imagePromises);
             downloadArea.style.display = "block";
-            dlBtn.style.display = "block"; // Hiện nút tải về khi vẽ xong dữ liệu
+            dlBtn.style.display = "block"; // Hiện nút tải về máy
 
         } catch (error) {
-            alert("Có lỗi xảy ra: " + error.message);
+            alert("Có lỗi: " + error.message + "\nHướng xử lý: Hãy tạo lại API Key ở dự án mới tinh trên Google AI Studio.");
+            console.error(error);
         } finally {
             btn.disabled = false;
             loading.style.display = "none";
         }
     }
 
-    // Hàm xử lý xuất và tải toàn bộ truyện dưới dạng ảnh PNG
+    // Hàm đóng gói toàn bộ trang truyện thành file PNG để tải xuống
     function downloadComic() {
         const target = document.getElementById('downloadArea');
+        btn.disabled = true;
         
-        // Cấu hình html2canvas để xử lý mượt mà ảnh dạng Blob URL
         html2canvas(target, {
             useCORS: true,
             allowTaint: true,
-            scale: 2 // Tăng chất lượng ảnh lên gấp đôi cho nét
+            scale: 2 // Nhân đôi độ phân giải ảnh tải về cho siêu nét
         }).then(canvas => {
             const link = document.createElement('a');
-            link.download = 'my-ai-comic.png';
+            link.download = 'ai-comic-manga.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
         }).catch(err => {
-            alert("Không thể tự động xuất ảnh, bạn hãy chụp màn hình điện thoại nhé!");
+            alert("Trình duyệt chặn tải tự động, bạn có thể chụp màn hình điện thoại để lưu lại truyện nhé!");
             console.error(err);
+        }).finally(() => {
+            btn.disabled = false;
         });
     }
 </script>
