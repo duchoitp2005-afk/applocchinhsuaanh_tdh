@@ -26,12 +26,15 @@
             border-radius: 14px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 24px; }
         .grid-inputs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 15px;
             margin-bottom: 20px;
+        }
+        @media(min-width: 600px) {
+            .grid-inputs { grid-template-columns: 1fr 1fr; }
         }
         .form-group { display: flex; flex-direction: column; }
         label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }
@@ -42,8 +45,10 @@
             border-radius: 8px;
             color: #fff;
             font-size: 14px;
+            box-sizing: border-box;
+            width: 100%;
         }
-        textarea { height: 100px; resize: none; }
+        textarea { height: 120px; resize: none; }
         .full-width { grid-column: 1 / -1; }
         button {
             width: 100%;
@@ -59,9 +64,8 @@
         }
         button:hover { background: #7c3aed; }
         button:disabled { background: #4b5563; cursor: not-allowed; }
-        .loading { display: none; text-align: center; color: #a78bfa; font-weight: bold; margin: 20px 0; }
+        .loading { display: none; text-align: center; color: #a78bfa; font-weight: bold; margin: 20px 0; font-size: 15px; }
         
-        /* --- KHU VỰC TRUYỆN TRANH (COMIC MANGA GRID) --- */
         .comic-book {
             display: none;
             margin-top: 35px;
@@ -69,13 +73,14 @@
             background: #fff;
             padding: 15px;
             border-radius: 4px;
-            /* Chia khung: 2 khung trên, 1 khung lớn bên dưới trải dài */
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 12px;
         }
+        @media(min-width: 600px) {
+            .comic-book { grid-template-columns: 1fr 1fr; }
+        }
         .panel {
-            position: relative; /* Để bong bóng thoại định vị theo khung này */
+            position: relative;
             border: 3px solid #000;
             overflow: hidden;
             background: #f3f4f6;
@@ -84,9 +89,8 @@
             align-items: center;
             justify-content: center;
         }
-        .panel-3 {
-            grid-column: 1 / -1; /* Trải dài hết hàng dưới */
-            aspect-ratio: 16/7;
+        @media(min-width: 600px) {
+            .panel-3 { grid-column: 1 / -1; aspect-ratio: 16/7; }
         }
         .panel img {
             width: 100%;
@@ -94,31 +98,29 @@
             object-fit: cover;
         }
         
-        /* --- BONG BÓNG LỜI THOẠI (SPEECH BUBBLE) --- */
         .speech-bubble {
             position: absolute;
             top: 10px;
             left: 10px;
-            max-width: 65%;
+            max-width: 75%;
             background: white;
             color: black;
             border: 2px solid black;
-            border-radius: 20px;
-            padding: 8px 12px;
-            font-size: 13px;
+            border-radius: 16px;
+            padding: 6px 10px;
+            font-size: 12px;
             font-weight: bold;
             line-height: 1.3;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
             z-index: 10;
             text-align: center;
         }
-        /* Cái đuôi của bong bóng thoại */
         .speech-bubble::after {
             content: '';
             position: absolute;
-            bottom: -10px;
-            left: 20px;
-            border-width: 10px 10px 0;
+            bottom: -8px;
+            left: 15px;
+            border-width: 8px 8px 0;
             border-style: solid;
             border-color: white transparent;
             display: block;
@@ -127,21 +129,17 @@
         .speech-bubble::before {
             content: '';
             position: absolute;
-            bottom: -13px;
-            left: 19px;
-            border-width: 11px 11px 0;
+            bottom: -11px;
+            left: 14px;
+            border-width: 9px 9px 0;
             border-style: solid;
             border-color: black transparent;
             display: block;
             width: 0;
         }
-        /* Đổi góc bong bóng thoại cho panel 2 nhìn tự nhiên hơn */
-        .panel-2 .speech-bubble {
-            left: auto;
-            right: 10px;
-        }
-        .panel-2 .speech-bubble::after { left: auto; right: 20px; }
-        .panel-2 .speech-bubble::before { left: auto; right: 19px; }
+        .panel-2 .speech-bubble { left: auto; right: 10px; }
+        .panel-2 .speech-bubble::after { left: auto; right: 15px; }
+        .panel-2 .speech-bubble::before { left: auto; right: 14px; }
     </style>
 </head>
 <body>
@@ -152,34 +150,34 @@
     <div class="grid-inputs">
         <div class="form-group">
             <label>Gemini API Key:</label>
-            <input type="password" id="geminiKey" placeholder="AIzaSy...">
+            <input type="password" id="geminiKey" placeholder="Dán mã AIzaSy... tại đây">
         </div>
         <div class="form-group">
             <label>Hugging Face Token:</label>
-            <input type="password" id="hfKey" placeholder="hf_...">
+            <input type="password" id="hfKey" placeholder="Dán mã hf_... tại đây">
         </div>
         <div class="form-group full-width">
             <label>Nhập kịch bản / Dàn ý của bạn:</label>
-            <textarea id="outline" placeholder="Ví dụ: Cao thủ võ lâm đấu với quái vật trong rừng trúc. Ban đầu quái vật áp đảo, nhưng cao thủ đã dùng tuyệt chiêu lật ngược tình thế..."></textarea>
+            <textarea id="outline" placeholder="Nhập nội dung truyện tại đây..."></textarea>
         </div>
     </div>
 
     <button id="genBtn" onclick="generateComic()">Bắt đầu vẽ truyện tranh</button>
     
-    <div class="loading" id="loading">Hệ thống đang phân cảnh, vẽ hình và chèn lời thoại... (Mất khoảng 20-30 giây)</div>
+    <div class="loading" id="loading">Hệ thống đang xử lý và vẽ tranh, vui lòng chờ trong giây lát...</div>
 
     <div class="comic-book" id="comicBook">
         <div class="panel panel-1" id="p1">
             <div class="speech-bubble" id="dialogue1">...</div>
-            <img id="img1" src="" alt="Khung 1 đang tải..." style="display:none;">
+            <img id="img1" src="" alt="Đang tải..." style="display:none;">
         </div>
         <div class="panel panel-2" id="p2">
             <div class="speech-bubble" id="dialogue2">...</div>
-            <img id="img2" src="" alt="Khung 2 đang tải..." style="display:none;">
+            <img id="img2" src="" alt="Đang tải..." style="display:none;">
         </div>
         <div class="panel panel-3" id="p3">
             <div class="speech-bubble" id="dialogue3">...</div>
-            <img id="img3" src="" alt="Khung 3 đang tải..." style="display:none;">
+            <img id="img3" src="" alt="Đang tải..." style="display:none;">
         </div>
     </div>
 </div>
@@ -194,7 +192,7 @@
         const comicBook = document.getElementById('comicBook');
 
         if(!geminiKey || !hfKey || !outline) {
-            alert("Vui lòng điền đầy đủ cả 2 Key và Dàn ý!");
+            alert("Vui lòng điền đầy đủ cả 2 Key và Dàn ý kịch bản!");
             return;
         }
 
@@ -203,16 +201,16 @@
         comicBook.style.display = "none";
 
         try {
-            // --- BƯỚC 1: ÉP GEMINI PHÂN TÍCH RA ĐỊNH DẠNG JSON CHUẨN ---
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
+            // Sửa đường link API chuẩn mã hóa HTTPS bảo mật cao hơn cho GitHub Pages
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
             
-            const systemPrompt = `Bạn là một biên kịch truyện tranh chuyên nghiệp. Hãy chuyển đổi dàn ý sau đây thành 3 phân cảnh liên tiếp (Manga panels). 
-            Hãy trả về kết quả DUY NHẤT dưới dạng chuỗi JSON hợp lệ (Không bao gồm từ nào khác ngoài JSON, không bọc trong ký hiệu cuộn code \`\`\`json).
+            const systemPrompt = `Bạn là một biên kịch truyện tranh chuyên nghiệp. Hãy chuyển đổi dàn ý sau đây thành đúng 3 phân cảnh liên tiếp. 
+            Hãy trả về kết quả DUY NHẤT dưới dạng chuỗi JSON hợp lệ (Không bao gồm bất kỳ từ ngữ nào khác ngoài JSON, không bọc trong ký hiệu cuộn code \`\`\`json).
             Cấu trúc JSON chính xác như sau:
             [
-              {"image_prompt": "Mô tả cảnh 1 bằng tiếng Anh để AI vẽ tranh, phong cách manhwa comic, nét vẽ sắc sảo", "dialogue": "Lời thoại ngắn gọn, hài hước bằng tiếng Việt cho cảnh 1"},
-              {"image_prompt": "Mô tả cảnh 2 bằng tiếng Anh để AI vẽ tranh, phong cách manhwa comic, nét vẽ sắc sảo", "dialogue": "Lời thoại ngắn gọn bằng tiếng Việt cho cảnh 2"},
-              {"image_prompt": "Mô tả cảnh 3 bằng tiếng Anh để AI vẽ tranh, phong cách manhwa comic, nét vẽ sắc sảo", "dialogue": "Lời thoại ngắn gọn bằng tiếng Việt cho cảnh 3"}
+              {"image_prompt": "Detailed English description for image generation, historical Vietnamese comic style, clean lines, colorful", "dialogue": "Lời thoại rất ngắn gọn bằng tiếng Việt cho cảnh 1"},
+              {"image_prompt": "Detailed English description for image generation, historical Vietnamese comic style, clean lines, colorful", "dialogue": "Lời thoại rất ngắn gọn bằng tiếng Việt cho cảnh 2"},
+              {"image_prompt": "Detailed English description for image generation, historical Vietnamese comic style, clean lines, colorful", "dialogue": "Lời thoại rất ngắn gọn bằng tiếng Việt cho cảnh 3"}
             ]
             Dàn ý truyện: "${outline}"`;
 
@@ -222,49 +220,48 @@
                 body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
             });
 
+            if (!geminiRes.ok) throw new Error("Mã Gemini API Key không chính xác hoặc hết hạn.");
+
             const geminiData = await geminiRes.json();
             let rawText = geminiData.candidates[0].content.parts[0].text.trim();
             
-            // Xử lý làm sạch chuỗi phòng trường hợp Gemini tự bọc ký hiệu ```json
             rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
             const comicData = JSON.parse(rawText);
 
-            // Gán lời thoại vào bong bóng trước
             document.getElementById('dialogue1').innerText = comicData[0].dialogue;
             document.getElementById('dialogue2').innerText = comicData[1].dialogue;
             document.getElementById('dialogue3').innerText = comicData[2].dialogue;
 
-            // --- BƯỚC 2: VẼ SONG SONG 3 BỨC ẢNH QUA HUGGING FACE ---
-            const hfUrl = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell";
+            const hfUrl = "[https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell](https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell)";
             
             const fetchImage = async (prompt) => {
                 const res = await fetch(hfUrl, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${hfKey}`, "Content-Type": "application/json" },
+                    headers: { 
+                        "Authorization": `Bearer ${hfKey}`, 
+                        "Content-Type": "application/json" 
+                    },
                     body: JSON.stringify({ inputs: prompt })
                 });
-                if(!res.ok) throw new Error("Lỗi gọi mô hình vẽ tranh Hugging Face");
+                if(!res.ok) throw new Error("Mã Hugging Face Token chưa đúng hoặc máy chủ AI đang bận.");
                 const blob = await res.blob();
                 return URL.createObjectURL(blob);
             };
 
-            // Chạy đồng thời 3 luồng vẽ ảnh để tiết kiệm thời gian
             const [url1, url2, url3] = await Promise.all([
                 fetchImage(comicData[0].image_prompt),
                 fetchImage(comicData[1].image_prompt),
                 fetchImage(comicData[2].image_prompt)
             ]);
 
-            // Gán ảnh vào các khung hình
             document.getElementById('img1').src = url1; document.getElementById('img1').style.display = "block";
             document.getElementById('img2').src = url2; document.getElementById('img2').style.display = "block";
             document.getElementById('img3').src = url3; document.getElementById('img3').style.display = "block";
 
-            // Hiển thị kết quả trang truyện
             comicBook.style.display = "grid";
 
         } catch (error) {
-            alert("Có lỗi xảy ra trong quá trình xử lý: " + error.message);
+            alert("Có lỗi xảy ra: " + error.message + "\nHướng xử lý: Hãy kiểm tra kỹ lại độ chính xác của 2 mã khóa Key.");
             console.error(error);
         } finally {
             btn.disabled = false;
