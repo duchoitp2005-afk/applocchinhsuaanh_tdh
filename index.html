@@ -2,365 +2,48 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI PowerPoint Slide Generator (Ultimate Version)</title>
+    <title>AI PowerPoint Master Pro</title>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #ec4899;
-            --primary-hover: #db2777;
-            --success: #06b6d4;
-            --text: #f8fafc;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 26px; }
-        .form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
-        label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }
-        input, textarea {
-            padding: 12px;
-            background: #334155;
-            border: 1px solid #475569;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            box-sizing: border-box;
-            width: 100%;
-        }
-        textarea { height: 120px; resize: none; }
-        
-        /* Giao diện nút chọn file */
-        .file-input-wrapper {
-            margin-top: 5px;
-            margin-bottom: 15px;
-        }
-        .file-input-wrapper label {
-            color: #94a3b8;
-            font-size: 13px;
-            font-weight: normal;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 15px;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        #genBtn { background: var(--primary); }
-        #genBtn:hover { background: var(--primary-hover); }
-        #dlBtn { background: var(--success); display: none; }
-        #dlBtn:hover { background: #0891b2; }
-        button:disabled { background: #64748b; cursor: not-allowed; }
-        
-        .loading { display: none; text-align: center; color: #f472b6; font-weight: bold; margin: 20px 0; }
-        
-        /* Khu vực trình chiếu Slide */
-        .presentation-container {
-            display: none;
-            margin-top: 30px;
-            text-align: center;
-        }
-        .slide-viewer {
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
-            border: 4px solid #475569;
-            border-radius: 8px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-            box-sizing: border-box;
-            overflow: hidden;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-        }
-        .slide-title {
-            font-size: 32px;
-            color: #f472b6;
-            margin-bottom: 20px;
-            font-weight: 800;
-        }
-        .slide-content {
-            font-size: 18px;
-            line-height: 1.6;
-            color: #e2e8f0;
-            text-align: left;
-            max-width: 85%;
-        }
-        .slide-content ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        .slide-content li {
-            margin-bottom: 10px;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-        }
-        .nav-btn {
-            width: auto;
-            padding: 10px 20px;
-            background: #475569;
-            margin: 0;
-        }
-        .nav-btn:hover { background: #334155; }
-        .slide-number {
-            font-size: 16px;
-            font-weight: bold;
-            color: #94a3b8;
-        }
+        /* Thêm style cho phần chọn theme */
+        .theme-box { margin: 15px 0; padding: 10px; background: #334155; border-radius: 6px; }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <h1>AI PowerPoint Slide Generator</h1>
-    
-    <div class="form-group">
-        <label>Gemini API Key:</label>
-        <input type="password" id="geminiKey" placeholder="Dán mã AIzaSy... sạch tại đây">
+    <div class="theme-box">
+        <label>Chọn tông màu chủ đạo:</label>
+        <select id="themeColor">
+            <option value="1e1b4b">Xanh Đậm (Chuyên nghiệp)</option>
+            <option value="1a4d1a">Xanh Lá (Môi trường/Sức khỏe)</option>
+            <option value="7d3c3c">Đỏ Đô (Doanh số/Ấn tượng)</option>
+        </select>
     </div>
-    
-    <div class="form-group">
-        <label>Cách 1: Chọn file tài liệu từ thiết bị (.txt):</label>
-        <div class="file-input-wrapper">
-            <input type="file" id="fileInput" accept=".txt" onchange="handleFileUpload()">
-            <label id="fileStatus"></label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label>Cách 2: Nhập trực tiếp chủ đề hoặc nội dung dàn ý:</label>
-        <textarea id="topic" placeholder="Nếu không tải file, bạn có thể gõ nội dung trực tiếp tại đây..."></textarea>
-    </div>
-
-    <div class="btn-group">
-        <button id="genBtn" onclick="generateSlides()">Bắt đầu thiết kế Slide</button>
-        <button id="dlBtn" onclick="downloadPowerPoint()">📥 Tải file PowerPoint (.pptx) về máy</button>
-    </div>
-    
-    <div class="loading" id="loading">AI đang đọc dữ liệu và xây dựng slide bài bản, vui lòng chờ...</div>
-
-    <div class="presentation-container" id="presContainer">
-        <div class="slide-viewer" id="slideViewer">
-            <div class="slide-title" id="slideTitle">Tiêu đề Slide</div>
-            <div class="slide-content" id="slideContent">Nội dung Slide</div>
-        </div>
-        
-        <div class="controls">
-            <button class="nav-btn" onclick="prevSlide()">◀ Slide trước</button>
-            <div class="slide-number" id="slideNum">Slide 1 / 1</div>
-            <button class="nav-btn" onclick="nextSlide()">Slide sau ▶</button>
-        </div>
-    </div>
-</div>
+    </body>
 
 <script>
-    let slidesData = [];
-    let currentSlideIndex = 0;
-    let uploadedFileText = "";
+    // Khi bấm nút tạo, gửi thêm yêu cầu về màu sắc cho Gemini
+    // Trong hàm generateSlides:
+    const theme = document.getElementById('themeColor').value;
+    
+    // Gửi thêm thông tin màu sắc vào Prompt
+    const systemPrompt = `...Hãy thiết kế slide với tông màu chủ đạo có mã hex: ${theme}. 
+    Với mỗi tiêu đề slide, hãy gợi ý một từ khóa (keyword) bằng tiếng Anh để tìm ảnh minh họa trên Unsplash...`;
 
-    // Hàm xử lý khi người dùng chọn tải file lên
-    function handleFileUpload() {
-        const fileInput = document.getElementById('fileInput');
-        const fileStatus = document.getElementById('fileStatus');
-        const file = fileInput.files[0];
-
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                uploadedFileText = e.target.result;
-                fileStatus.innerText = `✅ Đã đọc thành công file: ${file.name}`;
-                fileStatus.style.color = "#10b981";
-                // Tự động điền thông báo nhắc nhở vào ô textarea
-                document.getElementById('topic').placeholder = `Hệ thống sẽ ưu tiên sử dụng nội dung từ file "${file.name}" bạn vừa tải lên!`;
-            };
-            reader.readAsText(file);
-        }
-    }
-
-    async function generateSlides() {
-        const geminiKey = document.getElementById('geminiKey').value.trim();
-        let topic = document.getElementById('topic').value.trim();
-        const btn = document.getElementById('genBtn');
-        const dlBtn = document.getElementById('dlBtn');
-        const loading = document.getElementById('loading');
-        const presContainer = document.getElementById('presContainer');
-
-        // Nếu có file tải lên, ưu tiên lấy nội dung file làm tư liệu chính
-        if (uploadedFileText !== "") {
-            topic = "Nội dung từ tài liệu được tải lên:\n" + uploadedFileText;
-        }
-
-        if(!geminiKey || !topic) {
-            alert("Vui lòng nhập đầy đủ API Key và Nội dung (hoặc tải file lên)!");
-            return;
-        }
-
-        btn.disabled = true;
-        dlBtn.style.display = "none";
-        loading.style.display = "block";
-        presContainer.style.display = "none";
-
-        try {
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
-            
-            const systemPrompt = `Bạn là một chuyên gia soạn thảo và thiết kế PowerPoint chuyên nghiệp. Hãy phân tích kỹ chủ đề hoặc tài liệu sau để tóm tắt và chia thành một bài thuyết trình gồm các slide logic (từ 4 đến 8 slide).
-            Hãy trả về kết quả DUY NHẤT dưới dạng chuỗi mảng JSON chuẩn (Không bọc ký tự cuộn code \`\`\`json, không từ ngữ thừa).
-            Cấu trúc JSON yêu cầu chính xác như sau:
-            [
-              {
-                "title": "Tiêu đề Slide ngắn gọn",
-                "bullets": ["Ý chính thứ nhất súc tích", "Ý chính thứ hai", "Ý chính thứ ba"]
-              }
-            ]
-            Tài liệu/Chủ đề: "${topic}"`;
-
-            const res = await fetch(geminiUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
-            });
-
-            if(!res.ok) throw new Error("Mã API Key không chính xác hoặc hết hạn.");
-
-            const data = await res.json();
-            let rawText = data.candidates[0].content.parts[0].text.trim();
-            
-            rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-            slidesData = JSON.parse(rawText);
-
-            currentSlideIndex = 0;
-            renderSlide();
-            presContainer.style.display = "block";
-            dlBtn.style.display = "block"; // Hiện nút tải file .pptx khi làm xong
-
-        } catch (error) {
-            alert("Có lỗi: " + error.message);
-            console.error(error);
-        } finally {
-            btn.disabled = false;
-            loading.style.display = "none";
-        }
-    }
-
-    function renderSlide() {
-        if(slidesData.length === 0) return;
-        
-        const slide = slidesData[currentSlideIndex];
-        document.getElementById('slideTitle').innerText = slide.title;
-        
-        let htmlContent = "<ul>";
-        slide.bullets.forEach(bullet => {
-            htmlContent += `<li>${bullet}</li>`;
-        });
-        htmlContent += "</ul>";
-        
-        document.getElementById('slideContent').innerHTML = htmlContent;
-        document.getElementById('slideNum').innerText = `Slide ${currentSlideIndex + 1} / ${slidesData.length}`;
-    }
-
-    function nextSlide() {
-        if(currentSlideIndex < slidesData.length - 1) {
-            currentSlideIndex++;
-            renderSlide();
-        }
-    }
-
-    function prevSlide() {
-        if(currentSlideIndex > 0) {
-            currentSlideIndex--;
-            renderSlide();
-        }
-    }
-
-    // Hàm xuất và tải file .pptx thực tế về thiết bị
-    function downloadPowerPoint() {
-        if (slidesData.length === 0) return;
-
-        // Khởi tạo một đối tượng bài thuyết trình mới từ thư viện PptxGenJS
+    // Trong hàm downloadPPT, áp dụng màu nền:
+    function downloadPPT() {
         let pptx = new PptxGenJS();
+        const theme = document.getElementById('themeColor').value;
         
-        // Thiết lập cấu trúc slide khổ rộng 16:9 hiện đại
-        pptx.layout = 'LAYOUT_16x9';
-
-        slidesData.forEach((slideItem, index) => {
-            // Tạo một trang slide mới
+        slidesData.forEach(item => {
             let slide = pptx.addSlide();
+            slide.background = { color: theme }; // Áp dụng màu người dùng chọn
             
-            // Đổ màu nền tối sang trọng cho slide giống giao diện web (hoặc bạn có thể đổi màu tùy ý)
-            slide.background = { color: '1e1b4b' };
-
-            // Thêm tiêu đề cho slide
-            slide.addText(slideItem.title, {
-                x: 0.8,
-                y: 0.6,
-                w: '85%',
-                h: 1.0,
-                fontSize: 28,
-                bold: true,
-                color: 'f472b6', // Màu hồng nổi bật
-                fontFace: 'Segoe UI'
-            });
-
-            // Định dạng danh sách các dấu chấm đầu dòng (Bullet points)
-            let bulletObjects = slideItem.bullets.map(text => {
-                return { text: text, options: { bullet: true, indent: 20 } };
-            });
-
-            // Thêm khối văn bản nội dung vào slide
-            slide.addText(bulletObjects, {
-                x: 0.8,
-                y: 1.8,
-                w: '85%',
-                h: 4.5,
-                fontSize: 16,
-                color: 'e2e8f0', // Màu chữ sáng dễ đọc
-                fontFace: 'Segoe UI',
-                lineSpacing: 24
-            });
+            // Nếu có gợi ý ảnh từ AI, bạn dùng lệnh:
+            // slide.addImage({ path: 'https://source.unsplash.com/random?' + item.keyword, x: 0, y: 0, w: '100%', h: '100%' });
+            
+            slide.addText(item.title, { x: 0.5, y: 0.5, fontSize: 30, bold: true, color: 'FFFFFF' });
+            slide.addText(item.bullets.join("\n"), { x: 0.5, y: 1.5, fontSize: 18, color: 'FFFFFF' });
         });
-
-        // Kích hoạt lệnh tải xuống file PowerPoint thực tế tên là 'AI-Generated-Presentation.pptx'
-        pptx.writeFile({ fileName: 'AI-Generated-Presentation.pptx' })
-            .catch(err => {
-                alert("Lỗi khi xuất file PPTX, bạn hãy kiểm tra lại quyền bộ nhớ.");
-                console.error(err);
-            });
+        pptx.writeFile({ fileName: "Bai_Thuyet_Trinh_Pro.pptx" });
     }
 </script>
-
-</body>
-</html>
