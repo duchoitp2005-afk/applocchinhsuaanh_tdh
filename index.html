@@ -2,48 +2,96 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>AI PowerPoint Master Pro</title>
+    <title>AI PowerPoint Ultimate Pro</title>
     <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
-        /* Thêm style cho phần chọn theme */
-        .theme-box { margin: 15px 0; padding: 10px; background: #334155; border-radius: 6px; }
+        body { background: #0f172a; color: white; padding: 20px; font-family: sans-serif; }
+        .container { max-width: 600px; margin: auto; background: #1e293b; padding: 20px; border-radius: 12px; }
+        input, textarea, button, select { width: 100%; margin: 10px 0; padding: 12px; border-radius: 6px; border: none; box-sizing: border-box; }
+        button { background: #ec4899; color: white; font-weight: bold; cursor: pointer; }
+        #dlBtn { background: #06b6d4; display: none; }
     </style>
 </head>
 <body>
-    <div class="theme-box">
-        <label>Chọn tông màu chủ đạo:</label>
-        <select id="themeColor">
-            <option value="1e1b4b">Xanh Đậm (Chuyên nghiệp)</option>
-            <option value="1a4d1a">Xanh Lá (Môi trường/Sức khỏe)</option>
-            <option value="7d3c3c">Đỏ Đô (Doanh số/Ấn tượng)</option>
-        </select>
-    </div>
-    </body>
+
+<div class="container">
+    <h2>AI PowerPoint Pro</h2>
+    <input type="password" id="geminiKey" placeholder="Gemini API Key (Dự án mới)">
+    <input type="file" id="fileInput" accept=".txt,.docx,.pdf">
+    <select id="themeColor">
+        <option value="1e1b4b">Xanh Đậm (Chuyên nghiệp)</option>
+        <option value="1a4d1a">Xanh Lá (Môi trường)</option>
+        <option value="7d3c3c">Đỏ Đô (Ấn tượng)</option>
+    </select>
+    <textarea id="topic" placeholder="Nhập chủ đề hoặc nội dung..."></textarea>
+    
+    <button onclick="generateSlides()">Tạo nội dung & Chèn ảnh</button>
+    <button id="dlBtn" onclick="downloadPPT()">📥 Tải file .pptx về máy</button>
+</div>
 
 <script>
-    // Khi bấm nút tạo, gửi thêm yêu cầu về màu sắc cho Gemini
-    // Trong hàm generateSlides:
-    const theme = document.getElementById('themeColor').value;
-    
-    // Gửi thêm thông tin màu sắc vào Prompt
-    const systemPrompt = `...Hãy thiết kế slide với tông màu chủ đạo có mã hex: ${theme}. 
-    Với mỗi tiêu đề slide, hãy gợi ý một từ khóa (keyword) bằng tiếng Anh để tìm ảnh minh họa trên Unsplash...`;
+    let slidesData = [];
 
-    // Trong hàm downloadPPT, áp dụng màu nền:
-    function downloadPPT() {
+    async function generateSlides() {
+        const key = document.getElementById('geminiKey').value;
+        const file = document.getElementById('fileInput').files[0];
+        let content = document.getElementById('topic').value;
+
+        // 1. Đọc file
+        if (file) {
+            if (file.name.endsWith(".txt")) content = await file.text();
+            else if (file.name.endsWith(".docx")) {
+                const arrayBuffer = await file.arrayBuffer();
+                content = (await mammoth.extractRawText({ arrayBuffer })).value;
+            } else if (file.name.endsWith(".pdf")) {
+                const data = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data }).promise;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const text = await (await pdf.getPage(i)).getTextContent();
+                    content += text.items.map(s => s.str).join(" ") + "\n";
+                }
+            }
+        }
+
+        // 2. Gọi Gemini để lấy JSON cấu trúc slide + từ khóa ảnh
+        const prompt = `Tóm tắt nội dung sau thành JSON (một mảng các object, mỗi object có: title, bullets[], image_keyword). Nội dung: ${content}`;
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+
+        const data = await res.json();
+        const text = data.candidates[0].content.parts[0].text.replace(/```json|```/g, "").trim();
+        slidesData = JSON.parse(text);
+        
+        document.getElementById('dlBtn').style.display = "block";
+        alert("Đã xong! AI đã tìm ảnh minh họa cho bạn. Bấm tải về ngay.");
+    }
+
+    // 3. Xuất file PPTX với màu nền và ảnh minh họa
+    async function downloadPPT() {
         let pptx = new PptxGenJS();
         const theme = document.getElementById('themeColor').value;
         
-        slidesData.forEach(item => {
+        for (const item of slidesData) {
             let slide = pptx.addSlide();
-            slide.background = { color: theme }; // Áp dụng màu người dùng chọn
+            slide.background = { color: theme };
             
-            // Nếu có gợi ý ảnh từ AI, bạn dùng lệnh:
-            // slide.addImage({ path: 'https://source.unsplash.com/random?' + item.keyword, x: 0, y: 0, w: '100%', h: '100%' });
-            
+            // Chèn ảnh minh họa từ Unsplash dựa trên từ khóa AI đã gợi ý
+            slide.addImage({ 
+                path: `https://source.unsplash.com/random?${item.image_keyword}`, 
+                x: 0, y: 0, w: '100%', h: '100%',
+                transparency: 80 // Độ mờ để chữ nổi bật hơn
+            });
+
             slide.addText(item.title, { x: 0.5, y: 0.5, fontSize: 30, bold: true, color: 'FFFFFF' });
             slide.addText(item.bullets.join("\n"), { x: 0.5, y: 1.5, fontSize: 18, color: 'FFFFFF' });
-        });
-        pptx.writeFile({ fileName: "Bai_Thuyet_Trinh_Pro.pptx" });
+        }
+        pptx.writeFile({ fileName: "Presentation_Pro.pptx" });
     }
 </script>
+</body>
+</html>
