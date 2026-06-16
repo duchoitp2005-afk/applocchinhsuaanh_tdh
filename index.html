@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Comic Manga Generator (Full Upgraded)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>AI PowerPoint Slide Generator</title>
     <style>
         :root {
-            --bg-color: #121214;
-            --card-bg: #1a1a1e;
-            --primary: #8b5cf6;
-            --success: #10b981;
-            --text: #f3f4f6;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #ec4899;
+            --primary-hover: #db2777;
+            --text: #f8fafc;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -26,41 +25,27 @@
             background: var(--card-bg);
             padding: 25px;
             border-radius: 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 24px; }
-        .grid-inputs {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        @media(min-width: 600px) {
-            .grid-inputs { grid-template-columns: 1fr 1fr; }
-        }
-        .form-group { display: flex; flex-direction: column; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; font-size: 26px; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
         label { font-weight: bold; margin-bottom: 6px; font-size: 14px; }
         input, textarea {
             padding: 12px;
-            background: #26262b;
-            border: 1px solid #3f3f46;
+            background: #334155;
+            border: 1px solid #475569;
             border-radius: 8px;
             color: #fff;
             font-size: 14px;
             box-sizing: border-box;
             width: 100%;
         }
-        textarea { height: 140px; resize: none; }
-        .full-width { grid-column: 1 / -1; }
+        textarea { height: 100px; resize: none; }
         
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
         button {
             width: 100%;
             padding: 15px;
+            background: var(--primary);
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -68,237 +53,170 @@
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
+            margin-top: 10px;
         }
-        #genBtn { background: var(--primary); }
-        #genBtn:hover { background: #7c3aed; }
-        #dlBtn { background: var(--success); display: none; }
-        #dlBtn:hover { background: #059669; }
-        button:disabled { background: #4b5563; cursor: not-allowed; }
+        button:hover { background: var(--primary-hover); }
+        button:disabled { background: #64748b; cursor: not-allowed; }
         
-        .loading { display: none; text-align: center; color: #a78bfa; font-weight: bold; margin: 20px 0; font-size: 15px; }
+        .loading { display: none; text-align: center; color: #f472b6; font-weight: bold; margin: 20px 0; }
         
-        /* Khung truyện tranh xuất bản */
-        .comic-wrapper {
-            margin-top: 35px;
-            padding: 20px;
-            background: #fff; 
-            border: 5px solid #000;
-            border-radius: 6px;
-        }
-        .comic-book {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-        }
-        @media(min-width: 600px) {
-            .comic-book { grid-template-columns: 1fr 1fr; }
-        }
-        .panel {
-            position: relative;
-            border: 3.5px solid #000;
-            overflow: hidden;
-            background: #f3f4f6;
-            aspect-ratio: 4/3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .panel.full-row {
-            grid-column: 1 / -1;
-            aspect-ratio: 16/7;
-        }
-        .panel img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        /* Bong bóng lời thoại */
-        .speech-bubble {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            max-width: 75%;
-            background: white;
-            color: black;
-            border: 2.5px solid black;
-            border-radius: 16px;
-            padding: 8px 12px;
-            font-size: 12.5px;
-            font-weight: bold;
-            line-height: 1.4;
-            box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
-            z-index: 10;
+        /* Khu vực trình chiếu Slide */
+        .presentation-container {
+            display: none;
+            margin-top: 30px;
             text-align: center;
         }
-        .speech-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 18px;
-            border-width: 8px 8px 0;
-            border-style: solid;
-            border-color: white transparent;
-            display: block;
-            width: 0;
+        .slide-viewer {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+            border: 4px solid #475569;
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            box-sizing: border-box;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
-        .speech-bubble::before {
-            content: '';
-            position: absolute;
-            bottom: -11.5px;
-            left: 17px;
-            border-width: 9px 9px 0;
-            border-style: solid;
-            border-color: black transparent;
-            display: block;
-            width: 0;
+        .slide-title {
+            font-size: 32px;
+            color: #f472b6;
+            margin-bottom: 20px;
+            font-weight: 800;
         }
-        /* Bong bóng thoại đan xen trái phải cho sinh động */
-        .panel:nth-child(even) .speech-bubble { left: auto; right: 12px; }
-        .panel:nth-child(even) .speech-bubble::after { left: auto; right: 18px; }
-        .panel:nth-child(even) .speech-bubble::before { left: auto; right: 17px; }
+        .slide-content {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            text-align: left;
+            max-width: 85%;
+        }
+        .slide-content ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .slide-content li {
+            margin-bottom: 10px;
+        }
+        
+        /* Thanh điều khiển chuyển trang */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .nav-btn {
+            width: auto;
+            padding: 10px 20px;
+            background: #475569;
+            margin: 0;
+        }
+        .nav-btn:hover { background: #334155; }
+        .slide-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Hệ Thống Tạo Truyện Tranh Tự Động</h1>
+    <h1>AI PowerPoint Slide Generator</h1>
     
-    <div class="grid-inputs">
-        <div class="form-group">
-            <label>Gemini API Key:</label>
-            <input type="password" id="geminiKey" placeholder="Dán mã AIzaSy... mới tại đây">
-        </div>
-        <div class="form-group">
-            <label>Hugging Face Token:</label>
-            <input type="password" id="hfKey" placeholder="Dán mã hf_... chuẩn tại đây">
-        </div>
-        <div class="form-group full-width">
-            <label>Nhập kịch bản / Ý tưởng truyện (Dài ngắn tùy ý):</label>
-            <textarea id="outline" placeholder="Nhập kịch bản truyện tại đây... Hệ thống sẽ tự động phân chia số khung hình dựa trên độ dài câu chuyện của bạn!"></textarea>
-        </div>
+    <div class="form-group">
+        <label>Gemini API Key:</label>
+        <input type="password" id="geminiKey" placeholder="Dán mã AIzaSy... sạch của bạn tại đây">
+    </div>
+    <div class="form-group">
+        <label>Chủ đề bài thuyết trình hoặc Nội dung dàn ý:</label>
+        <textarea id="topic" placeholder="Ví dụ: Lịch sử phát triển của Trí tuệ nhân tạo AI, hoặc một bài báo cáo doanh thu cụ thể..."></textarea>
     </div>
 
-    <div class="btn-group">
-        <button id="genBtn" onclick="generateComic()">Bắt đầu vẽ truyện tranh</button>
-        <button id="dlBtn" onclick="downloadComic()">📥 Tải trọn bộ truyện tranh về máy</button>
-    </div>
+    <button id="genBtn" onclick="generateSlides()">Bắt đầu thiết kế Slide</button>
     
-    <div class="loading" id="loading">Hệ thống đang phân tích kịch bản và vẽ ảnh siêu nét, vui lòng chờ...</div>
+    <div class="loading" id="loading">AI đang lên nội dung và dàn trang Slide PowerPoint, vui lòng chờ...</div>
 
-    <div id="downloadArea" class="comic-wrapper" style="display: none;">
-        <div class="comic-book" id="comicBook"></div>
+    <div class="presentation-container" id="presContainer">
+        <div class="slide-viewer" id="slideViewer">
+            <div class="slide-title" id="slideTitle">Tiêu đề Slide</div>
+            <div class="slide-content" id="slideContent">Nội dung Slide</div>
+        </div>
+        
+        <div class="controls">
+            <button class="nav-btn" onclick="prevSlide()">◀ Slide trước</button>
+            <div class="slide-number" id="slideNum">Slide 1 / 1</div>
+            <button class="nav-btn" onclick="nextSlide()">Slide sau ▶</button>
+        </div>
     </div>
 </div>
 
 <script>
-    async function generateComic() {
-        const geminiKey = document.getElementById('geminiKey').value.trim();
-        const hfKey = document.getElementById('hfKey').value.trim();
-        const outline = document.getElementById('outline').value.trim();
-        const btn = document.getElementById('genBtn');
-        const dlBtn = document.getElementById('dlBtn');
-        const loading = document.getElementById('loading');
-        const downloadArea = document.getElementById('downloadArea');
-        const comicBook = document.getElementById('comicBook');
+    let slidesData = [];
+    let currentSlideIndex = 0;
 
-        if(!geminiKey || !hfKey || !outline) {
-            alert("Vui lòng điền đầy đủ cả 2 Key và Kịch bản!");
+    async function generateSlides() {
+        const geminiKey = document.getElementById('geminiKey').value.trim();
+        const topic = document.getElementById('topic').value.trim();
+        const btn = document.getElementById('genBtn');
+        const loading = document.getElementById('loading');
+        const presContainer = document.getElementById('presContainer');
+
+        if(!geminiKey || !topic) {
+            alert("Vui lòng nhập đầy đủ API Key và Chủ đề!");
             return;
         }
 
         btn.disabled = true;
-        dlBtn.style.display = "none";
         loading.style.display = "block";
-        downloadArea.style.display = "none";
-        comicBook.innerHTML = ""; 
+        presContainer.style.display = "none";
 
         try {
             const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
             
-            // Ép cấu trúc prompt chặt chẽ để Gemini phân phối số phân cảnh tùy cơ ứng biến từ 2 đến 6 cảnh
-            const systemPrompt = `Bạn là một biên kịch và họa sĩ phân cảnh truyện tranh chuyên nghiệp. Hãy phân tích kỹ nội dung cốt truyện sau và tự động phân chia câu chuyện thành một số lượng phân cảnh thích hợp nhất (tối thiểu 2 cảnh, tối đa 6 cảnh) tùy thuộc vào độ dài và các bước ngoặt của tình tiết.
-            Mỗi cảnh phải tạo một lời thoại ngắn gọn bằng tiếng Việt và một mô tả hình ảnh bằng tiếng Anh cực kỳ chi tiết.
-            Hãy trả về kết quả DUY NHẤT dưới dạng một chuỗi mảng JSON chuẩn (Tuyệt đối không chứa từ ngữ thừa, không bọc trong ký tự cuộn code \`\`\`json).
-            Cấu trúc JSON yêu cầu:
+            const systemPrompt = `Bạn là một chuyên gia thiết kế bài thuyết trình PowerPoint chuyên nghiệp. Hãy phân tích chủ đề sau và tạo ra một bài thuyết trình gồm từ 4 đến 7 slide logic và cuốn hút.
+            Hãy trả về kết quả DUY NHẤT dưới dạng chuỗi mảng JSON chuẩn (Không bọc ký tự cuộn code \`\`\`json, không từ ngữ thừa).
+            Cấu trúc JSON yêu cầu chính xác như sau:
             [
-              {"image_prompt": "Detailed English description for image generation, beautiful anime manga comic style, clean lines, colorful, highly detailed", "dialogue": "Lời thoại nhân vật bằng tiếng Việt ngắn gọn"}
+              {
+                "title": "Tiêu đề Slide 1 (Mở đầu cực hay)",
+                "bullets": ["Ý chính thứ nhất ngắn gọn", "Ý chính thứ hai rõ ràng", "Ý chính thứ ba đắt giá"]
+              },
+              {
+                "title": "Tiêu đề Slide 2",
+                "bullets": ["Nội dung chính phát triển chủ đề", "Số liệu hoặc luận điểm làm rõ"]
+              }
             ]
-            Cốt truyện: "${outline}"`;
+            Chủ đề thuyết trình: "${topic}"`;
 
-            const geminiRes = await fetch(geminiUrl, {
+            const res = await fetch(geminiUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
             });
 
-            if (!geminiRes.ok) throw new Error("Mã Gemini API Key không chính xác hoặc đã hết hạn dự án.");
+            if(!res.ok) throw new Error("API Key không chính xác hoặc lỗi hệ thống.");
 
-            const geminiData = await geminiRes.json();
-            let rawText = geminiData.candidates[0].content.parts[0].text.trim();
+            const data = await res.json();
+            let rawText = data.candidates[0].content.parts[0].text.trim();
             
-            // Làm sạch dữ liệu JSON phòng trường hợp Gemini tự ý bọc codeblock
+            // Làm sạch JSON
             rawText = rawText.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
-            const comicData = JSON.parse(rawText);
+            slidesData = JSON.parse(rawText);
 
-            // Server Animagine-XL chất lượng cao, chuyên trị lỗi ảnh lỗi
-            const hfUrl = "[https://api-inference.huggingface.co/models/cagliostrolab/animagine-xl-3.1](https://api-inference.huggingface.co/models/cagliostrolab/animagine-xl-3.1)";
-            
-            const fetchImage = async (prompt) => {
-                const res = await fetch(hfUrl, {
-                    method: "POST",
-                    headers: { 
-                        "Authorization": `Bearer ${hfKey}`, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({ 
-                        inputs: prompt,
-                        options: { wait_for_model: true } // Ép Hugging Face chờ kích hoạt model nếu server đang ngủ, tránh trả về lỗi
-                    })
-                });
-                if(!res.ok) throw new Error("Máy chủ vẽ tranh đang bận xử lý, vui lòng bấm thử lại sau ít giây.");
-                const blob = await res.blob();
-                return URL.createObjectURL(blob);
-            };
-
-            // Tiến hành dựng các khung hình động linh hoạt lên giao diện
-            const imagePromises = comicData.map(async (scene, index) => {
-                const panel = document.createElement('div');
-                panel.className = 'panel';
-                
-                // Nếu tổng số cảnh là số lẻ, thiết lập cho khung cuối cùng trải dài full hàng cho đẹp cân đối
-                if (comicData.length % 2 !== 0 && index === comicData.length - 1) {
-                    panel.classList.add('full-row');
-                }
-
-                const bubble = document.createElement('div');
-                bubble.className = 'speech-bubble';
-                bubble.innerText = scene.dialogue;
-                
-                const img = document.createElement('img');
-                img.alt = "AI đang vẽ...";
-                img.crossOrigin = "anonymous"; // Cho phép chụp tải ảnh không vướng bảo mật CORS
-                
-                panel.appendChild(bubble);
-                panel.appendChild(img);
-                comicBook.appendChild(panel);
-
-                try {
-                    const imgUrl = await fetchImage(scene.image_prompt);
-                    img.src = imgUrl;
-                } catch (err) {
-                    img.alt = "Lỗi không thể tải ảnh từ server";
-                    console.error(err);
-                }
-            });
-
-            // Chờ tất cả các luồng AI vẽ xong toàn diện
-            await Promise.all(imagePromises);
-            downloadArea.style.display = "block";
-            dlBtn.style.display = "block"; // Hiện nút tải về máy
+            // Reset về slide đầu tiên và hiển thị
+            currentSlideIndex = 0;
+            renderSlide();
+            presContainer.style.display = "block";
 
         } catch (error) {
-            alert("Có lỗi: " + error.message + "\nHướng xử lý: Hãy tạo lại API Key ở dự án mới tinh trên Google AI Studio.");
+            alert("Có lỗi xảy ra: " + error.message);
             console.error(error);
         } finally {
             btn.disabled = false;
@@ -306,26 +224,36 @@
         }
     }
 
-    // Hàm đóng gói toàn bộ trang truyện thành file PNG để tải xuống
-    function downloadComic() {
-        const target = document.getElementById('downloadArea');
-        btn.disabled = true;
+    // Hàm vẽ nội dung Slide hiện tại lên màn hình
+    function renderSlide() {
+        if(slidesData.length === 0) return;
         
-        html2canvas(target, {
-            useCORS: true,
-            allowTaint: true,
-            scale: 2 // Nhân đôi độ phân giải ảnh tải về cho siêu nét
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'ai-comic-manga.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }).catch(err => {
-            alert("Trình duyệt chặn tải tự động, bạn có thể chụp màn hình điện thoại để lưu lại truyện nhé!");
-            console.error(err);
-        }).finally(() => {
-            btn.disabled = false;
+        const slide = slidesData[currentSlideIndex];
+        document.getElementById('slideTitle').innerText = slide.title;
+        
+        // Tạo danh sách dấu chấm đầu dòng (Bullet points)
+        let htmlContent = "<ul>";
+        slide.bullets.forEach(bullet => {
+            htmlContent += `<li>${bullet}</li>`;
         });
+        htmlContent += "</ul>";
+        
+        document.getElementById('slideContent').innerHTML = htmlContent;
+        document.getElementById('slideNum').innerText = `Slide ${currentSlideIndex + 1} / ${slidesData.length}`;
+    }
+
+    function nextSlide() {
+        if(currentSlideIndex < slidesData.length - 1) {
+            currentSlideIndex++;
+            renderSlide();
+        }
+    }
+
+    function prevSlide() {
+        if(currentSlideIndex > 0) {
+            currentSlideIndex--;
+            renderSlide();
+        }
     }
 </script>
 
